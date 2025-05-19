@@ -6,6 +6,7 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [showNavbar, setShowNavbar] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [navbarBg, setNavbarBg] = useState("bg-white"); // Set to always be white
 
   const handleScroll = (id) => {
     const element = document.querySelector(id);
@@ -31,9 +32,7 @@ export default function Navbar() {
 
   return (
     <nav
-      className={`fixed w-full z-50 transition-transform duration-300 ${
-        showNavbar ? "translate-y-0" : "-translate-y-full"
-      } bg-white/20 backdrop-blur-md`}
+      className={`fixed w-full z-50 transition-all duration-300 ${navbarBg}`}
     >
       <div className="max-w-7xl mx-auto flex justify-between items-center py-4 px-6">
         {/* Logo */}
@@ -89,7 +88,7 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="md:hidden bg-white/80 backdrop-blur-md text-black py-4 shadow-md flex flex-col items-center space-y-4">
+        <div className="md:hidden bg-white py-4 shadow-md flex flex-col items-center space-y-4">
           <button
             onClick={() => handleScroll("#home")}
             className="hover:text-blue-500 transition"
