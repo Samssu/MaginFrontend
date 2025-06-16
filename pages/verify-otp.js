@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import Swal from "sweetalert2"; // Import SweetAlert2
+import { toast } from "react-toastify"; // Impor toast untuk menampilkan notifikasi
+import "react-toastify/dist/ReactToastify.css"; // Impor CSS untuk Toastify
 
 export default function VerifyOtp() {
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [token, setToken] = useState("");
   const router = useRouter();
-
   const { token: tokenFromQuery } = router.query;
 
   useEffect(() => {
@@ -18,37 +18,44 @@ export default function VerifyOtp() {
     e.preventDefault();
     setLoading(true);
 
-    console.log("Verifying OTP with:", { otp, token }); // Debugging payload
-
     try {
       const res = await fetch("http://localhost:5000/api/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ otp, token }),
       });
-      const data = await res.json();
 
-      if (data.message === "OTP verified successfully") {
-        Swal.fire({
-          icon: "success",
-          title: "🎉 Registrasi berhasil!",
-          text: "Mengalihkan ke halaman login...",
-        }).then(() => {
-          // Mengalihkan ke halaman login setelah notifikasi
-          router.push("/login");
+      if (res.ok) {
+        // Jika status HTTP 200, berarti OTP berhasil diverifikasi
+        toast.success(
+          "🎉 Registrasi berhasil! Mengalihkan ke halaman login...",
+          {
+            position: "bottom-right",
+            autoClose: 3000,
+          }
+        );
+
+        // Setelah menampilkan notifikasi sukses, baru alihkan ke halaman login
+        setTimeout(() => {
+          router.push("/login"); // Redirect ke halaman login setelah sukses
+        }, 1000); // Tunda selama 1 detik untuk memberi waktu notifikasi tampil
+      } else if (res.status === 400) {
+        // Jika status HTTP 400, berarti OTP tidak valid
+        toast.error("OTP tidak valid.", {
+          position: "bottom-right",
+          autoClose: 3000,
         });
       } else {
-        Swal.fire({
-          icon: "error",
-          title: "Verifikasi Gagal",
-          text: data.message || "OTP tidak valid.",
+        // Jika status HTTP lainnya, anggap sebagai kesalahan server
+        toast.error("Terjadi kesalahan server.", {
+          position: "bottom-right",
+          autoClose: 3000,
         });
       }
     } catch (error) {
-      Swal.fire({
-        icon: "error",
-        title: "Terjadi Kesalahan",
-        text: "Terjadi kesalahan server.",
+      toast.error("Terjadi kesalahan server.", {
+        position: "bottom-right",
+        autoClose: 3000,
       });
     }
 

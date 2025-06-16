@@ -1,7 +1,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import Swal from "sweetalert2"; // Import SweetAlert2
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function Register() {
   const [form, setForm] = useState({
@@ -15,11 +16,7 @@ export default function Register() {
     e.preventDefault();
 
     if (form.password.length < 8) {
-      Swal.fire({
-        icon: "error",
-        title: "Oops...",
-        text: "Password minimal 8 karakter.",
-      });
+      toast.error("Password minimal 8 karakter.");
       return;
     }
 
@@ -35,36 +32,27 @@ export default function Register() {
       const data = await res.json();
 
       if (data.token) {
-        // Menampilkan notifikasi sukses menggunakan SweetAlert2
-        Swal.fire({
-          icon: "success",
-          title: "Berhasil!",
-          text: "OTP telah dikirim ke email Anda.",
-        }).then(() => {
-          // Navigasi ke halaman verifikasi dengan membawa email dan token
-          router.push({
-            pathname: "/verify-otp",
-            query: {
-              email: form.email,
-              token: data.token,
-            },
-          });
+        toast.success("OTP telah dikirim ke email Anda.", {
+          position: "bottom-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+        });
+
+        router.push({
+          pathname: "/verify-otp",
+          query: {
+            email: form.email,
+            token: data.token,
+          },
         });
       } else {
-        // Menampilkan pesan kesalahan jika registrasi gagal
-        Swal.fire({
-          icon: "error",
-          title: "Gagal",
-          text: data.message || "Registrasi gagal.",
-        });
+        toast.error(data.message || "Registrasi gagal.");
       }
     } catch (error) {
       console.error("Register error:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Terjadi Kesalahan",
-        text: "Terjadi kesalahan. Silakan coba lagi.",
-      });
+      toast.error("Terjadi kesalahan. Silakan coba lagi.");
     }
   };
 
@@ -80,8 +68,31 @@ export default function Register() {
       </div>
 
       {/* Form Register */}
-      <div className="flex items-center justify-center px-6 py-10 bg-white">
-        <div className="w-full max-w-md space-y-6 border rounded-xl p-6 shadow-md text-black">
+      <div className="flex items-center justify-center px-6 py-10 bg-white relative">
+        <div className="w-full max-w-md space-y-6 border rounded-xl p-6 shadow-md text-black relative">
+          {/* Tombol Kembali di Kiri Atas */}
+          <button
+            type="button"
+            onClick={() => router.push("/")}
+            className="absolute top-4 left-4 flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-blue-600 hover:scale-105 transition duration-200"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              className="w-5 h-5"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+            Kembali
+          </button>
+
           <h1 className="text-3xl font-bold text-center">Register</h1>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -126,14 +137,6 @@ export default function Register() {
               className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700"
             >
               Register
-            </button>
-
-            <button
-              type="button"
-              onClick={() => router.push("/")}
-              className="w-full border text-gray-700 py-2 rounded-md hover:bg-gray-100"
-            >
-              Kembali
             </button>
           </form>
 

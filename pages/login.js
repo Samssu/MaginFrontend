@@ -1,12 +1,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import jwt from "jsonwebtoken";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function Login() {
-  const [form, setForm] = useState({
-    email: "",
-    password: "",
-  });
+  const [form, setForm] = useState({ email: "", password: "" });
   const [message, setMessage] = useState("");
   const router = useRouter();
 
@@ -24,12 +24,35 @@ export default function Login() {
 
       if (res.ok && data.token) {
         localStorage.setItem("token", data.token);
-        router.push("/dashboard");
+        const decoded = jwt.decode(data.token);
+
+        if (decoded.role === "user" && decoded.isVerified) {
+          toast.success("Login berhasil!", {
+            position: "bottom-right",
+            autoClose: 3000,
+          });
+          router.push("/user/dashboard");
+        } else {
+          localStorage.removeItem("token");
+          setMessage("Akses ditolak. Silakan verifikasi email.");
+          toast.error("Akses ditolak. Silakan verifikasi email.", {
+            position: "bottom-right",
+            autoClose: 3000,
+          });
+        }
       } else {
-        setMessage(data.error || "Email atau password salah.");
+        setMessage(data.message || "Email atau password salah.");
+        toast.error(data.message || "Email atau password salah.", {
+          position: "bottom-right",
+          autoClose: 3000,
+        });
       }
     } catch (err) {
       setMessage("Terjadi kesalahan server.");
+      toast.error("Terjadi kesalahan server.", {
+        position: "bottom-right",
+        autoClose: 3000,
+      });
     }
   };
 
@@ -45,11 +68,33 @@ export default function Login() {
       </div>
 
       {/* Form Login */}
-      <div className="flex items-center justify-center px-6 py-10 bg-white">
-        <div className="w-full max-w-md space-y-6 border rounded-xl p-6 shadow-md text-black">
-          <h1 className="text-3xl font-bold text-center">Login</h1>
+      <div className="flex items-center justify-center px-6 py-10 bg-white relative">
+        <div className="w-full max-w-md space-y-6 border rounded-xl p-6 shadow-md text-black relative">
+          <button
+            type="button"
+            onClick={() => router.push("/")}
+            className="absolute top-4 left-4 flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-blue-600 hover:scale-105 transition duration-200"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              className="w-5 h-5"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+            Kembali
+          </button>
 
-          <form onSubmit={handleLogin} className="space-y-4">
+          <h1 className="text-3xl font-bold text-center mt-4">Login</h1>
+
+          <form onSubmit={handleLogin} className="space-y-4 mt-4">
             <div>
               <label className="text-sm font-medium">Email</label>
               <input
@@ -79,13 +124,9 @@ export default function Login() {
               Login
             </button>
 
-            <button
-              type="button"
-              onClick={() => router.push("/")}
-              className="w-full border text-gray-700 py-2 rounded-md hover:bg-gray-100"
-            >
-              Kembali
-            </button>
+            <p className="text-sm text-center text-blue-600 hover:underline mt-2">
+              <Link href="/forgot">Lupa Password?</Link>
+            </p>
           </form>
 
           {message && (
