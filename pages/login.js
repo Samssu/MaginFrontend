@@ -125,7 +125,7 @@ export default function Login() {
             </button>
 
             <p className="text-sm text-center text-blue-600 hover:underline mt-2">
-              <Link href="/forgot">Lupa Password?</Link>
+              <Link href="/forgot-password">Lupa Password?</Link>
             </p>
           </form>
 
