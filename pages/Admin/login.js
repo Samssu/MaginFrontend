@@ -27,7 +27,7 @@ export default function AdminLogin() {
         if (decoded.role === "admin") {
           localStorage.setItem("token", data.token);
           toast.success("Login Admin berhasil!");
-          router.push("/admin/dashboard");
+          router.push("/Admin/dashboard");
         } else {
           toast.error("Akun ini bukan admin.");
         }

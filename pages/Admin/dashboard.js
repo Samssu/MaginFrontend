@@ -1,38 +1,59 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import jwt from "jsonwebtoken"; // Menggunakan JWT untuk decode token
+import jwt from "jsonwebtoken";
+import AdminLayout from "../../components/layouts/AdminLayouts";
 
-const AdminDashboard = () => {
+export default function AdminDashboard() {
+  const [authorized, setAuthorized] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
-      router.push("/login"); // Redirect ke login jika tidak ada token
+      router.replace("/login");
     } else {
-      const decoded = jwt.decode(token); // Decode token untuk mendapatkan role
-      if (decoded.role !== "admin") {
-        router.push("/login"); // Redirect jika bukan admin
+      try {
+        const decoded = jwt.decode(token);
+        if (decoded?.role !== "admin") {
+          router.replace("/login");
+        } else {
+          setAuthorized(true);
+        }
+      } catch (err) {
+        router.replace("/login");
       }
     }
   }, [router]);
 
-  return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-      <p className="mt-4">
-        Welcome to the Admin Dashboard. You can manage users and settings here.
-      </p>
-      <div className="mt-6">
-        <h2 className="text-2xl">Admin Controls:</h2>
-        <ul className="mt-2 list-disc pl-5">
-          <li>Manage Users</li>
-          <li>View Reports</li>
-          <li>Settings</li>
-        </ul>
+  if (!authorized) {
+    return (
+      <div className="flex h-screen justify-center items-center">
+        <p className="text-gray-500 text-lg">Loading...</p>
       </div>
-    </div>
-  );
-};
+    );
+  }
 
-export default AdminDashboard;
+  return (
+    <AdminLayout>
+      <h2 className="text-2xl font-bold mb-4">Selamat Datang, Admin</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div className="p-6 bg-white rounded-lg shadow">
+          <p className="text-gray-500 text-sm">Jumlah Mahasiswa</p>
+          <p className="text-3xl font-bold text-gray-800">134</p>
+        </div>
+        <div className="p-6 bg-white rounded-lg shadow">
+          <p className="text-gray-500 text-sm">Pengajuan Baru</p>
+          <p className="text-3xl font-bold text-gray-800">18</p>
+        </div>
+        <div className="p-6 bg-white rounded-lg shadow">
+          <p className="text-gray-500 text-sm">Pembimbing Aktif</p>
+          <p className="text-3xl font-bold text-gray-800">5</p>
+        </div>
+        <div className="p-6 bg-white rounded-lg shadow">
+          <p className="text-gray-500 text-sm">Total Laporan</p>
+          <p className="text-3xl font-bold text-gray-800">97</p>
+        </div>
+      </div>
+    </AdminLayout>
+  );
+}
