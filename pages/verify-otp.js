@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
-import { toast } from "react-toastify"; // Impor toast untuk menampilkan notifikasi
-import "react-toastify/dist/ReactToastify.css"; // Impor CSS untuk Toastify
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function VerifyOtp() {
-  const [otp, setOtp] = useState("");
+  const [otpDigits, setOtpDigits] = useState(["", "", "", "", "", ""]);
+  const inputRefs = useRef([]);
   const [loading, setLoading] = useState(false);
   const [token, setToken] = useState("");
   const router = useRouter();
@@ -14,10 +15,38 @@ export default function VerifyOtp() {
     if (tokenFromQuery) setToken(tokenFromQuery);
   }, [tokenFromQuery]);
 
+  const handleChange = (index, value) => {
+    if (/^\d?$/.test(value)) {
+      const newOtp = [...otpDigits];
+      newOtp[index] = value;
+      setOtpDigits(newOtp);
+      if (value && index < 5) {
+        inputRefs.current[index + 1]?.focus();
+      }
+    }
+  };
+
+  const handleKeyDown = (index, e) => {
+    if (e.key === "Backspace" && !otpDigits[index] && index > 0) {
+      const newOtp = [...otpDigits];
+      newOtp[index - 1] = "";
+      setOtpDigits(newOtp);
+      inputRefs.current[index - 1]?.focus();
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    const otp = otpDigits.join("");
+    if (otp.length !== 6) {
+      toast.error("OTP harus terdiri dari 6 digit.", {
+        position: "bottom-right",
+        autoClose: 3000,
+      });
+      return;
+    }
 
+    setLoading(true);
     try {
       const res = await fetch("http://localhost:5000/api/verify-otp", {
         method: "POST",
@@ -26,7 +55,6 @@ export default function VerifyOtp() {
       });
 
       if (res.ok) {
-        // Jika status HTTP 200, berarti OTP berhasil diverifikasi
         toast.success(
           "🎉 Registrasi berhasil! Mengalihkan ke halaman login...",
           {
@@ -34,19 +62,13 @@ export default function VerifyOtp() {
             autoClose: 3000,
           }
         );
-
-        // Setelah menampilkan notifikasi sukses, baru alihkan ke halaman login
-        setTimeout(() => {
-          router.push("/login"); // Redirect ke halaman login setelah sukses
-        }, 1000); // Tunda selama 1 detik untuk memberi waktu notifikasi tampil
+        setTimeout(() => router.push("/login"), 1000);
       } else if (res.status === 400) {
-        // Jika status HTTP 400, berarti OTP tidak valid
         toast.error("OTP tidak valid.", {
           position: "bottom-right",
           autoClose: 3000,
         });
       } else {
-        // Jika status HTTP lainnya, anggap sebagai kesalahan server
         toast.error("Terjadi kesalahan server.", {
           position: "bottom-right",
           autoClose: 3000,
@@ -58,7 +80,6 @@ export default function VerifyOtp() {
         autoClose: 3000,
       });
     }
-
     setLoading(false);
   };
 
@@ -73,22 +94,51 @@ export default function VerifyOtp() {
         />
       </div>
 
-      {/* Form Verify OTP */}
+      {/* Form Verifikasi */}
       <div className="flex items-center justify-center px-6 py-10 bg-white">
-        <div className="w-full max-w-md space-y-6 border rounded-xl p-6 shadow-md text-black">
+        <div className="w-full max-w-md space-y-6 border rounded-xl p-6 shadow-md text-black animate-fade-in relative">
+          {/* Tombol Kembali (SVG Button) */}
+          <button
+            type="button"
+            onClick={() => router.push("/")}
+            className="absolute top-4 left-4 flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-blue-600 hover:scale-105 transition duration-200"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              className="w-5 h-5"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+            Kembali
+          </button>
+
           <h1 className="text-3xl font-bold text-center">Verifikasi OTP</h1>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <input
-              type="text"
-              placeholder="Masukkan kode OTP"
-              className="w-full px-4 py-2 mt-1 border rounded-md text-center text-xl tracking-widest"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-              maxLength={6}
-              required
-              autoFocus
-            />
+          <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+            <div className="flex justify-center gap-2">
+              {otpDigits.map((digit, index) => (
+                <input
+                  key={index}
+                  ref={(el) => (inputRefs.current[index] = el)}
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={1}
+                  className="w-12 h-12 text-center text-xl border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={digit}
+                  onChange={(e) => handleChange(index, e.target.value)}
+                  onKeyDown={(e) => handleKeyDown(index, e)}
+                  autoFocus={index === 0}
+                />
+              ))}
+            </div>
 
             <button
               type="submit"
@@ -98,14 +148,6 @@ export default function VerifyOtp() {
               }`}
             >
               {loading ? "Memverifikasi..." : "Verifikasi OTP"}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => router.push("/register")}
-              className="w-full border text-gray-700 py-2 rounded-md hover:bg-gray-100"
-            >
-              Kembali ke Register
             </button>
           </form>
         </div>

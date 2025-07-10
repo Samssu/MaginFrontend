@@ -1,22 +1,22 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { FaBars, FaTimes } from "react-icons/fa";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { toast } from "react-toastify"; // Impor react-toastify
-import { motion } from "framer-motion"; // Impor motion dari framer-motion
+import { toast } from "react-toastify";
+import { motion } from "framer-motion";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-  const [showNavbar, setShowNavbar] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
-  const [navbarBg, setNavbarBg] = useState("bg-white");
+  const [navbarStyle, setNavbarStyle] = useState("bg-transparent text-white");
   const [user, setUser] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false); // State untuk menampilkan konfirmasi logout
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const router = useRouter();
 
-  // Check login status and get user data from localStorage
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -26,6 +26,20 @@ export default function Navbar() {
     }
   }, []);
 
+  useEffect(() => {
+    const controlNavbar = () => {
+      if (window.scrollY > 50) {
+        setNavbarStyle("bg-white text-black shadow-md");
+      } else {
+        setNavbarStyle("bg-transparent text-white");
+      }
+      setLastScrollY(window.scrollY);
+    };
+
+    window.addEventListener("scroll", controlNavbar);
+    return () => window.removeEventListener("scroll", controlNavbar);
+  }, [lastScrollY]);
+
   const handleScroll = (id) => {
     const element = document.querySelector(id);
     if (element) {
@@ -34,54 +48,33 @@ export default function Navbar() {
     }
   };
 
-  const controlNavbar = () => {
-    if (window.scrollY > lastScrollY) {
-      setShowNavbar(false);
-    } else {
-      setShowNavbar(true);
-    }
-    setLastScrollY(window.scrollY);
-  };
-
-  useEffect(() => {
-    window.addEventListener("scroll", controlNavbar);
-    return () => window.removeEventListener("scroll", controlNavbar);
-  }, [lastScrollY]);
-
   const handleLogout = () => {
-    // Remove token and user data from localStorage
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
     setIsLoggedIn(false);
     setUser(null);
-    toast.success("You have logged out successfully!", {
+    setShowProfileMenu(false);
+    setShowLogoutConfirm(false);
+
+    toast.success("Berhasil logout!", {
       position: "bottom-right",
       autoClose: 3000,
     });
+
     router.push("/login");
   };
 
-  const toggleProfileMenu = () => {
-    setShowProfileMenu(!showProfileMenu); // Toggle visibility of profile menu
-  };
-
-  const confirmLogout = () => {
-    setShowLogoutConfirm(true); // Show logout confirmation modal
-  };
-
-  const cancelLogout = () => {
-    setShowLogoutConfirm(false); // Hide logout confirmation modal
-  };
-
-  // Gunakan 'kokomi.png' sebagai default profile picture
-  const profilePicture = user?.profilePicture || "/images/kokomi.png"; // Akses gambar dari /public/images
+  const toggleProfileMenu = () => setShowProfileMenu(!showProfileMenu);
+  const confirmLogout = () => setShowLogoutConfirm(true);
+  const cancelLogout = () => setShowLogoutConfirm(false);
+  const profilePicture = user?.profilePicture || "/images/kokomi.png";
 
   return (
     <nav
-      className={`fixed w-full z-50 transition-all duration-300 ${navbarBg}`}
+      className={`fixed w-full z-50 transition-all duration-300 ${navbarStyle}`}
     >
-      <div className="max-w-7xl mx-auto flex justify-between items-center py-4 px-6">
-        {/* Logo */}
+      <div className="max-w-7xl mx-auto hidden md:flex justify-between items-center py-4 px-6 w-full">
         <h1
           onClick={() => handleScroll("#home")}
           className="text-2xl sm:text-3xl font-bold cursor-pointer hover:text-blue-500 transition"
@@ -89,110 +82,130 @@ export default function Navbar() {
           Magin
         </h1>
 
-        {/* Desktop Menu */}
-        <div className="hidden md:flex items-center space-x-8">
+        <div className="flex space-x-8">
           <button
             onClick={() => handleScroll("#home")}
-            className="hover:text-blue-500 transition"
+            className="hover:text-blue-500"
           >
             Beranda
           </button>
           <button
             onClick={() => handleScroll("#about")}
-            className="hover:text-blue-500 transition"
+            className="hover:text-blue-500"
           >
             Tentang Kami
           </button>
           <button
             onClick={() => handleScroll("#program")}
-            className="hover:text-blue-500 transition"
+            className="hover:text-blue-500"
           >
             Program Magang
           </button>
+        </div>
 
+        <div className="flex items-center space-x-4">
           {isLoggedIn ? (
-            <div className="flex items-center space-x-4 relative">
-              {/* Display profile picture */}
+            <div className="relative">
               <img
                 src={profilePicture}
                 alt="Profile"
                 className="w-10 h-10 rounded-full cursor-pointer"
                 onClick={toggleProfileMenu}
               />
-
-              {/* Dropdown menu for profile */}
               {showProfileMenu && (
                 <motion.div
                   initial={{ opacity: 0, y: -20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3 }}
-                  className="absolute top-full mt-2 w-48 bg-white border rounded-lg shadow-lg z-20"
+                  className="absolute top-full mt-2 right-0 w-64 bg-white border rounded-lg shadow-xl z-50 overflow-hidden text-black"
                 >
-                  <button
-                    onClick={() => router.push("/profile/edit")}
-                    className="w-full text-left px-4 py-2 text-blue-500 hover:bg-gray-100 transition"
-                  >
-                    Edit Profile
-                  </button>
-                  <button
-                    onClick={confirmLogout} // Show logout confirmation modal
-                    className="w-full text-left px-4 py-2 text-red-500 hover:bg-gray-100 transition"
-                  >
-                    Logout
-                  </button>
+                  <div className="px-4 py-3 border-b">
+                    <p className="text-sm font-semibold">
+                      {user?.name || "Pengguna"}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {user?.email || "email@example.com"}
+                    </p>
+                  </div>
+                  <div className="py-2">
+                    <button
+                      onClick={() => router.push("/user/dashboard")}
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                    >
+                      Dashboard
+                    </button>
+                    <button
+                      onClick={() => router.push("/profile/edit")}
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                    >
+                      Edit Profile
+                    </button>
+                    <button
+                      onClick={confirmLogout}
+                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                    >
+                      Sign Out
+                    </button>
+                  </div>
                 </motion.div>
               )}
             </div>
           ) : (
-            <div className="space-x-4">
+            <>
               <Link href="/login">
-                <button className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">
+                <button className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
                   Login
                 </button>
               </Link>
               <Link href="/register">
-                <button className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">
+                <button className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
                   Register
                 </button>
               </Link>
-            </div>
+            </>
           )}
-        </div>
-
-        {/* Mobile Menu Button */}
-        <div className="md:hidden flex items-center">
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="text-2xl focus:outline-none"
-          >
-            {isOpen ? <FaTimes /> : <FaBars />}
-          </button>
         </div>
       </div>
 
       {/* Mobile Menu */}
+      <div className="md:hidden flex justify-between items-center py-4 px-6">
+        <h1
+          onClick={() => handleScroll("#home")}
+          className="text-2xl sm:text-3xl font-bold cursor-pointer hover:text-blue-500"
+        >
+          Magin
+        </h1>
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="text-2xl focus:outline-none"
+        >
+          {isOpen ? <FaTimes /> : <FaBars />}
+        </button>
+      </div>
+
       {isOpen && (
-        <div className="md:hidden bg-white py-4 shadow-md flex flex-col items-center space-y-4">
+        <div className="md:hidden bg-white text-black py-4 shadow-md flex flex-col items-center space-y-4">
           <button
             onClick={() => handleScroll("#home")}
-            className="hover:text-blue-500 transition"
+            className="hover:text-blue-500"
           >
             Beranda
           </button>
           <button
             onClick={() => handleScroll("#about")}
-            className="hover:text-blue-500 transition"
+            className="hover:text-blue-500"
           >
             Tentang Kami
           </button>
           <button
             onClick={() => handleScroll("#program")}
-            className="hover:text-blue-500 transition"
+            className="hover:text-blue-500"
           >
             Program Magang
           </button>
+
           {isLoggedIn ? (
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-center space-y-2">
               <img
                 src={profilePicture}
                 alt="Profile"
@@ -201,70 +214,80 @@ export default function Navbar() {
               />
               {showProfileMenu && (
                 <motion.div
-                  initial={{ opacity: 0, y: -20 }}
+                  initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3 }}
-                  className="absolute bg-white p-4 shadow-lg rounded-lg mt-2 w-48"
+                  className="bg-white w-64 rounded-lg shadow-lg p-4 text-left border"
                 >
+                  <p className="text-sm font-semibold">
+                    {user?.name || "Pengguna"}
+                  </p>
+                  <p className="text-xs text-gray-500 mb-2">
+                    {user?.email || "email@example.com"}
+                  </p>
+                  <button
+                    onClick={() => router.push("/user/dashboard")}
+                    className="block w-full text-left px-2 py-1 text-sm hover:bg-gray-100"
+                  >
+                    Dashboard
+                  </button>
                   <button
                     onClick={() => router.push("/profile/edit")}
-                    className="w-full text-left px-4 py-2 text-blue-500 hover:bg-gray-100 transition"
+                    className="block w-full text-left px-2 py-1 text-sm hover:bg-gray-100"
                   >
                     Edit Profile
                   </button>
                   <button
-                    onClick={confirmLogout} // Show logout confirmation modal
-                    className="w-full text-left px-4 py-2 text-red-500 hover:bg-gray-100 transition"
+                    onClick={confirmLogout}
+                    className="block w-full text-left px-2 py-1 text-sm text-red-600 hover:bg-gray-100"
                   >
-                    Logout
+                    Sign Out
                   </button>
                 </motion.div>
               )}
             </div>
           ) : (
-            <div className="space-y-4">
+            <>
               <Link href="/login">
-                <button className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">
+                <button className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
                   Login
                 </button>
               </Link>
               <Link href="/register">
-                <button className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">
+                <button className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
                   Register
                 </button>
               </Link>
-            </div>
+            </>
           )}
         </div>
       )}
 
-      {/* Logout Confirmation Modal */}
+      {/* Logout Modal */}
       {showLogoutConfirm && (
         <motion.div
-          className="fixed inset-0 bg-opacity-90 flex justify-center items-center z-50"
+          className="fixed inset-0 bg-black/60 flex justify-center items-center z-50"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.3 }}
         >
           <motion.div
-            className="bg-white p-6 rounded-lg shadow-lg w-1/4 text-center"
+            className="bg-white p-6 rounded-lg shadow-lg w-80 text-center"
             initial={{ scale: 0.8 }}
             animate={{ scale: 1 }}
-            transition={{ duration: 0.3 }}
           >
-            <h3 className="text-lg font-semibold">
-              Apakah Anda yakin untuk keluar?
+            <h3 className="text-lg font-semibold text-black">
+              Apakah Anda yakin ingin keluar?
             </h3>
             <div className="mt-4 space-x-4">
               <button
-                onClick={handleLogout} // Proceed with logout
-                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
+                onClick={handleLogout}
+                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
               >
                 Ya, Logout
               </button>
               <button
-                onClick={cancelLogout} // Cancel logout
-                className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition"
+                onClick={cancelLogout}
+                className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400"
               >
                 Batal
               </button>

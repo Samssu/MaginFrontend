@@ -1,53 +1,42 @@
-import { FaSmile, FaCheckDouble, FaLayerGroup, FaUsers } from "react-icons/fa";
+import { Lightbulb, Wallet, Rocket } from "lucide-react";
+import { motion } from "framer-motion";
 
-export default function InternshipStats() {
+const features = [
+  {
+    icon: <Lightbulb className="w-20 h-20 text-blue-700 glow" />,
+    title: "Daftarkan dirimu",
+    desc: "Kami percaya setiap mahasiswa punya potensi, daftarkan dirimu dan buktikan kontribusimu.",
+  },
+  {
+    icon: <Wallet className="w-20 h-20 text-blue-700 bounce-slow" />,
+    title: "Dapatkan pengalaman nyata",
+    desc: "Ikuti strategi kerja profesional langsung dari instansi pemerintahan.",
+  },
+  {
+    icon: <Rocket className="w-20 h-20 text-blue-700 fly" />,
+    title: "Tingkatkan portofolio",
+    desc: "Bangun pengalaman kerja nyata untuk mendukung karier masa depanmu.",
+  },
+];
+
+export default function FeaturesSection() {
   return (
-    <section className="py-12 px-4 bg-white w-full">
-      <div className="max-w-full mx-auto text-center">
-        {/* Judul dan Deskripsi */}
-        <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-2">
-          Bangun Karier Lewat Pengalaman Magang
-        </h2>
-        <p className="text-gray-600 mb-4 max-w-4xl mx-auto">
-          Program magang kami dirancang untuk memberikan pengalaman dunia kerja
-          yang nyata, memperluas koneksi profesional, dan mengembangkan
-          keterampilan praktis yang dibutuhkan di industri.
-        </p>
-
-        {/* Statistik */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 px-6">
-          {/* Item 1 */}
-          <div className="flex flex-col items-center">
-            <FaSmile className="text-6xl text-gray-400 mb-2" />{" "}
-            {/* Reduced margin */}
-            <h3 className="text-2xl font-semibold">250+</h3>
-            <p className="text-gray-500 text-lg">Peserta Puas</p>
-          </div>
-
-          {/* Item 2 */}
-          <div className="flex flex-col items-center">
-            <FaCheckDouble className="text-6xl text-gray-400 mb-2" />{" "}
-            {/* Reduced margin */}
-            <h3 className="text-2xl font-semibold">600+</h3>
-            <p className="text-gray-500 text-lg">Proyek Diselesaikan</p>
-          </div>
-
-          {/* Item 3 */}
-          <div className="flex flex-col items-center">
-            <FaLayerGroup className="text-6xl text-gray-400 mb-2" />{" "}
-            {/* Reduced margin */}
-            <h3 className="text-2xl font-semibold">1.8K+</h3>
-            <p className="text-gray-500 text-lg">Materi Magang</p>
-          </div>
-
-          {/* Item 4 */}
-          <div className="flex flex-col items-center">
-            <FaUsers className="text-6xl text-gray-400 mb-2" />{" "}
-            {/* Reduced margin */}
-            <h3 className="text-2xl font-semibold">11K+</h3>
-            <p className="text-gray-500 text-lg">Pendaftar</p>
-          </div>
-        </div>
+    <section className="py-10 bg-white">
+      <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
+        {features.map((item, index) => (
+          <motion.div
+            key={index}
+            className="space-y-4"
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: index * 0.2 }}
+            viewport={{ once: true }}
+          >
+            <div className="flex justify-center">{item.icon}</div>
+            <h3 className="text-xl font-semibold">{item.title}</h3>
+            <p className="text-gray-600 text-base">{item.desc}</p>
+          </motion.div>
+        ))}
       </div>
     </section>
   );

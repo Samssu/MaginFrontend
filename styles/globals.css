@@ -1,1 +1,52 @@
 @import "tailwindcss";
+
+@keyframes fly {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-15px);
+  }
+}
+
+@keyframes bounce-slow {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.fly {
+  animation: fly 2.5s ease-in-out infinite;
+}
+
+.bounce-slow {
+  animation: bounce-slow 2s ease-in-out infinite;
+}
+
+.glow {
+  animation: pulseGlow 2s ease-in-out infinite;
+  filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.6));
+}
+
+@keyframes pulseGlow {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

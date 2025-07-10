@@ -1,139 +1,106 @@
-export default function InternshipFeature() {
-  return (
-    <section className="py-16 px-4 bg-white w-full">
-      <div className="max-w-screen-xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-8">
-        {/* Gambar */}
-        <div className="w-full lg:w-1/2 flex justify-center">
-          <img
-            src="/images/picture.png" // Ganti dengan path gambar yang sesuai
-            alt="Illustrasi Magang"
-            className="w-3/4 sm:w-4/5 md:w-3/4 lg:w-full object-contain"
-          />
-        </div>
+import Image from "next/image";
+import { motion } from "framer-motion";
 
-        {/* Deskripsi Teks */}
-        <div className="w-full lg:w-1/2 text-center lg:text-left">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-            Tentang Program Magang Kami
+export default function Feature() {
+  return (
+    <section className="bg-white py-20 px-6">
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-12">
+        {/* Gambar Sejajar dengan Fade-in */}
+        <motion.div
+          className="w-full md:w-1/2 flex justify-center"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          viewport={{ once: true }}
+        >
+          <div className="flex gap-6">
+            {/* Gambar 1 */}
+            <motion.div
+              className="relative w-64 h-80 rounded-xl overflow-hidden shadow-lg"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              viewport={{ once: true }}
+            >
+              <Image
+                src="/images/feature1.jpg"
+                alt="Mahasiswa Magang"
+                fill
+                className="object-cover"
+              />
+            </motion.div>
+
+            {/* Gambar 2 */}
+            <motion.div
+              className="relative w-64 h-80 rounded-xl overflow-hidden shadow-lg"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+              viewport={{ once: true }}
+            >
+              <Image
+                src="/images/feature2.jpg"
+                alt="Suasana Magang"
+                fill
+                className="object-cover"
+              />
+            </motion.div>
+          </div>
+        </motion.div>
+
+        {/* Deskripsi & Progress Bar dengan Fade-in */}
+        <motion.div
+          className="w-full md:w-1/2"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.5 }}
+          viewport={{ once: true }}
+        >
+          <span className="text-sm uppercase text-blue-600 font-semibold tracking-wider bg-blue-50 px-3 py-1 rounded-full">
+            🧑‍💻 Program Magang
+          </span>
+          <h2 className="text-4xl font-bold text-gray-900 mt-4 mb-6 leading-tight">
+            Persiapkan Kariermu Lewat <br /> Pengalaman Magang Nyata
           </h2>
-          <p className="text-gray-600 mb-8">
-            Program magang kami menawarkan pengalaman yang sangat berharga untuk
-            mengembangkan keterampilan kerja, memperluas jaringan profesional,
-            dan mempersiapkan kamu untuk karier yang sukses.
+          <p className="text-gray-600 mb-8 leading-relaxed">
+            Program magang ini memberikan kamu kesempatan untuk belajar langsung
+            di lingkungan kerja profesional, membangun relasi, dan meningkatkan
+            keterampilan praktis yang sangat dibutuhkan di dunia industri.
           </p>
 
-          {/* Fitur */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-            <div className="flex items-center space-x-4">
-              <div className="bg-blue-100 p-3 rounded-full">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 text-blue-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z"
-                  />
-                </svg>
+          {/* Progress Bar */}
+          <div className="space-y-6">
+            <div>
+              <div className="flex justify-between mb-1">
+                <span className="text-sm font-medium text-red-600">
+                  Pengalaman Profesional
+                </span>
+                <span className="text-sm font-semibold text-red-600">98%</span>
               </div>
-              <div>
-                <h4 className="font-semibold text-gray-900">
-                  Pengalaman Nyata
-                </h4>
-                <p className="text-gray-600">
-                  Dapatkan pengalaman langsung yang relevan dengan dunia kerja.
-                </p>
+              <div className="w-full bg-red-100 rounded-full h-3">
+                <div
+                  className="bg-red-500 h-3 rounded-full"
+                  style={{ width: "98%" }}
+                />
               </div>
             </div>
 
-            <div className="flex items-center space-x-4">
-              <div className="bg-blue-100 p-3 rounded-full">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 text-blue-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                </svg>
+            <div>
+              <div className="flex justify-between mb-1">
+                <span className="text-sm font-medium text-blue-600">
+                  Peningkatan Skill
+                </span>
+                <span className="text-sm font-semibold text-blue-600">85%</span>
               </div>
-              <div>
-                <h4 className="font-semibold text-gray-900">
-                  Koneksi Profesional
-                </h4>
-                <p className="text-gray-600">
-                  Perluas koneksi profesional dengan orang-orang di industri
-                  terkait.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-4">
-              <div className="bg-blue-100 p-3 rounded-full">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 text-blue-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M12 8v4M12 16h.01M7 12a5 5 0 0110 0 5 5 0 01-10 0z"
-                  />
-                </svg>
-              </div>
-              <div>
-                <h4 className="font-semibold text-gray-900">
-                  Pengembangan Diri
-                </h4>
-                <p className="text-gray-600">
-                  Program magang ini memungkinkan kamu mengasah keterampilan
-                  penting untuk kariermu.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-4">
-              <div className="bg-blue-100 p-3 rounded-full">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 text-blue-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
-              </div>
-              <div>
-                <h4 className="font-semibold text-gray-900">Peluang Karier</h4>
-                <p className="text-gray-600">
-                  Tingkatkan peluang karier melalui pengalaman magang yang
-                  relevan dengan industri.
-                </p>
+              <div className="w-full bg-blue-100 rounded-full h-3">
+                <div
+                  className="bg-blue-500 h-3 rounded-full"
+                  style={{ width: "85%" }}
+                />
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );
