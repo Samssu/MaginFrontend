@@ -117,9 +117,6 @@ export default function UserDashboard() {
             </svg>
           </div>
         </section>
-
-        <FiturDaftar />
-        <FiturLogbook />
       </div>
     </>
   );
