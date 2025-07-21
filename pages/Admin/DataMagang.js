@@ -289,26 +289,48 @@ export default function DataPendaftaran() {
 
       {/* Modal Detail */}
       {selectedDetail && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full shadow-lg relative">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-2xl p-8 w-full max-w-5xl shadow-xl relative overflow-y-auto max-h-[90vh]">
             <button
               onClick={closeModal}
-              className="absolute top-2 right-3 text-gray-400 hover:text-gray-600 text-xl font-bold"
+              className="absolute top-4 right-5 text-gray-500 hover:text-black text-2xl font-bold"
             >
               &times;
             </button>
-            <h3 className="text-xl font-semibold mb-4 text-gray-800">
-              Detail Pendaftar
+
+            <h3 className="text-2xl font-bold mb-6 text-center text-gray-800">
+              📄 Detail Lengkap Pendaftar
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm md:text-base text-gray-800">
               {Object.entries(selectedDetail).map(([key, value]) => (
-                <div key={key}>
-                  <p className="font-semibold capitalize">
+                <div key={key} className="bg-gray-50 p-4 rounded shadow-sm">
+                  <p className="text-gray-500 font-semibold mb-1 capitalize">
                     {key.replace(/([A-Z])/g, " $1")}
                   </p>
-                  <p className="text-gray-700">{value || "-"}</p>
+                  {typeof value === "string" && value.endsWith(".pdf") ? (
+                    <a
+                      href={`http://localhost:5000/uploads/${value}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline break-all"
+                    >
+                      {value}
+                    </a>
+                  ) : (
+                    <p>{value || "-"}</p>
+                  )}
                 </div>
               ))}
+            </div>
+
+            <div className="text-center mt-8">
+              <button
+                onClick={closeModal}
+                className="px-6 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition"
+              >
+                Tutup
+              </button>
             </div>
           </div>
         </div>

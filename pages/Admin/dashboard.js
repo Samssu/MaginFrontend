@@ -1,167 +1,142 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/router";
-import jwt from "jsonwebtoken";
-import AdminLayout from "../../components/layouts/AdminLayouts";
 import axios from "axios";
-import { Users, UserPlus, UserCheck, FileText } from "lucide-react";
+import AdminLayout from "../../components/layouts/AdminLayouts";
 import {
-  LineChart,
-  Line,
+  Users,
+  UserPlus,
+  UserCheck,
+  FileText,
+  Clock,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
+import {
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
 
-export default function AdminDashboard() {
-  const [authorized, setAuthorized] = useState(false);
-  const [stats, setStats] = useState({});
-  const [recent, setRecent] = useState([]);
-  const router = useRouter();
+export default function Dashboard() {
+  const [dataStatistik, setDataStatistik] = useState({
+    totalPendaftar: 0,
+    totalDisetujui: 0,
+    totalMenunggu: 0,
+    totalLogbook: 0,
+  });
+
+  const [aktivitasTerbaru, setAktivitasTerbaru] = useState([]);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) return router.replace("/login");
-    try {
-      const decoded = jwt.decode(token);
-      if (decoded.role !== "admin") throw Error();
-      setAuthorized(true);
-      fetchStats();
-      fetchRecent();
-    } catch {
-      router.replace("/login");
-    }
-  }, [router]);
+    const fetchData = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/admin/statistik"); // Sesuaikan dengan endpoint backend
+        setDataStatistik(res.data);
 
-  const fetchStats = async () => {
-    const { data } = await axios.get("/api/pendaftaran/stats");
-    setStats(data);
-  };
+        const resAktivitas = await axios.get(
+          "http://localhost:5000/admin/aktivitas-terbaru"
+        );
+        setAktivitasTerbaru(resAktivitas.data);
+      } catch (err) {
+        console.error("Gagal mengambil data statistik:", err);
+      }
+    };
 
-  const fetchRecent = async () => {
-    const { data } = await axios.get("/api/pendaftaran/recent");
-    setRecent(data);
-  };
+    fetchData();
+  }, []);
 
-  if (!authorized)
-    return (
-      <div className="flex h-screen justify-center items-center">
-        <p>Loading...</p>
-      </div>
-    );
-
-  const cards = [
-    {
-      title: "Jumlah Pendaftar",
-      value: stats.total,
-      icon: <Users className="w-8 h-8 text-blue-600" />,
-      bg: "bg-blue-50",
-    },
-    {
-      title: "Pengajuan Baru",
-      value: stats.new,
-      icon: <UserPlus className="w-8 h-8 text-purple-600" />,
-      bg: "bg-purple-50",
-    },
-    {
-      title: "Disetujui",
-      value: stats.approved,
-      icon: <UserCheck className="w-8 h-8 text-green-600" />,
-      bg: "bg-green-50",
-    },
-    {
-      title: "Ditolak",
-      value: stats.rejected,
-      icon: <FileText className="w-8 h-8 text-orange-600" />,
-      bg: "bg-orange-50",
-    },
+  const chartData = [
+    { name: "Pendaftar", jumlah: dataStatistik.totalPendaftar },
+    { name: "Disetujui", jumlah: dataStatistik.totalDisetujui },
+    { name: "Menunggu", jumlah: dataStatistik.totalMenunggu },
+    { name: "Logbook", jumlah: dataStatistik.totalLogbook },
   ];
-
-  const chartData = stats.daily || [];
 
   return (
     <AdminLayout>
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">Dashboard Admin</h1>
-        <p className="text-gray-500">Selamat datang kembali 👋</p>
-      </div>
+      <div className="p-6">
+        <h1 className="text-2xl font-bold mb-4">Dashboard Admin</h1>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
-        {cards.map((c, i) => (
-          <div
-            key={i}
-            className={`p-5 rounded-xl shadow hover:shadow-lg transition border ${c.bg}`}
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">{c.title}</p>
-                <p className="text-3xl font-bold">{c.value}</p>
-              </div>
-              <div className="p-2 bg-white rounded-full shadow-inner">
-                {c.icon}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+        {/* Statistik Box */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <StatCard
+            icon={<UserPlus className="text-blue-600" />}
+            title="Total Pendaftar"
+            value={dataStatistik.totalPendaftar}
+          />
+          <StatCard
+            icon={<UserCheck className="text-green-600" />}
+            title="Disetujui"
+            value={dataStatistik.totalDisetujui}
+          />
+          <StatCard
+            icon={<Clock className="text-yellow-500" />}
+            title="Menunggu"
+            value={dataStatistik.totalMenunggu}
+          />
+          <StatCard
+            icon={<FileText className="text-purple-600" />}
+            title="Total Logbook"
+            value={dataStatistik.totalLogbook}
+          />
+        </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        <div className="bg-white p-6 rounded-xl shadow">
-          <h2 className="text-lg font-semibold mb-4">
-            Tren Pendaftaran (7 Hari Terakhir)
-          </h2>
+        {/* Grafik */}
+        <div className="bg-white p-4 rounded shadow mb-6">
+          <h2 className="text-lg font-semibold mb-2">Grafik Statistik</h2>
           <ResponsiveContainer width="100%" height={250}>
-            <LineChart data={chartData}>
-              <XAxis dataKey="date" />
-              <YAxis />
+            <BarChart data={chartData}>
+              <XAxis dataKey="name" />
+              <YAxis allowDecimals={false} />
               <Tooltip />
-              <Line
-                type="monotone"
-                dataKey="count"
-                stroke="#4F46E5"
-                strokeWidth={2}
-              />
-            </LineChart>
+              <Bar dataKey="jumlah" fill="#2563eb" radius={[4, 4, 0, 0]} />
+            </BarChart>
           </ResponsiveContainer>
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow">
+        {/* Aktivitas Terbaru */}
+        <div className="bg-white p-4 rounded shadow">
           <h2 className="text-lg font-semibold mb-4">Aktivitas Terbaru</h2>
-          <ul className="space-y-4 max-h-64 overflow-y-auto">
-            {recent.map((r) => (
-              <li
-                key={r._id}
-                className="flex justify-between items-center py-2 border-b"
-              >
-                <div>
-                  <p className="font-medium">{r.nama}</p>
-                  <p className="text-sm text-gray-500">
-                    {new Date(r.createdAt).toLocaleString()}
-                  </p>
-                </div>
-                <span
-                  className={`px-3 py-1 rounded-full text-xs ${
-                    r.status === "pending"
-                      ? "bg-yellow-200 text-yellow-800"
-                      : r.status === "disetujui"
-                      ? "bg-green-200 text-green-800"
-                      : "bg-red-200 text-red-800"
-                  } capitalize`}
-                >
-                  {r.status}
+          <ul className="space-y-2">
+            {aktivitasTerbaru.map((item, index) => (
+              <li key={index} className="flex items-center space-x-2 text-sm">
+                {item.type === "pendaftaran" && (
+                  <UserPlus className="text-blue-500 w-4 h-4" />
+                )}
+                {item.type === "logbook" && (
+                  <FileText className="text-purple-500 w-4 h-4" />
+                )}
+                {item.type === "disetujui" && (
+                  <CheckCircle className="text-green-500 w-4 h-4" />
+                )}
+                {item.type === "ditolak" && (
+                  <XCircle className="text-red-500 w-4 h-4" />
+                )}
+                <span>{item.message}</span>
+                <span className="text-gray-400 text-xs">
+                  ({item.timestamp})
                 </span>
               </li>
             ))}
-            {recent.length === 0 && (
-              <li className="text-center text-gray-500">
-                Tidak ada aktivitas.
-              </li>
-            )}
           </ul>
         </div>
       </div>
     </AdminLayout>
+  );
+}
+
+function StatCard({ icon, title, value }) {
+  return (
+    <div className="bg-white rounded shadow p-4 flex items-center space-x-4">
+      <div className="p-2 rounded-full bg-gray-100">{icon}</div>
+      <div>
+        <p className="text-sm text-gray-600">{title}</p>
+        <p className="text-xl font-bold">{value}</p>
+      </div>
+    </div>
   );
 }

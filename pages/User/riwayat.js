@@ -7,7 +7,6 @@ import jwt from "jsonwebtoken";
 import Navbar2 from "@/components/Navbar2";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import LinkButtons from "@/components/LinkButtons";
 
 const fadeInVariant = {
   hidden: { opacity: 0, y: 20 },
@@ -24,7 +23,6 @@ export default function UserDashboard() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-
     if (!token) {
       router.push("/");
       return;
@@ -60,18 +58,17 @@ export default function UserDashboard() {
         <Navbar2 />
 
         {/* Hero Section */}
-        <section className="relative min-h-[50vh] w-full flex items-center justify-center text-center overflow-hidden">
+        <section className="relative min-h-[50vh] flex items-center justify-center text-center overflow-hidden">
           <div className="absolute inset-0 z-0">
             <Image
               src="/images/hero.jpg"
               alt="Hero Background"
               fill
-              className="object-cover object-center"
+              className="object-cover"
               priority
             />
             <div className="absolute inset-0 bg-black/60" />
           </div>
-
           <div className="relative z-10 px-6 sm:px-10 max-w-4xl mx-auto text-white">
             <motion.h1
               variants={fadeInVariant}
@@ -82,7 +79,6 @@ export default function UserDashboard() {
             >
               Selamat Datang di Dashboard
             </motion.h1>
-
             <motion.p
               variants={fadeInVariant}
               initial="hidden"
@@ -93,40 +89,6 @@ export default function UserDashboard() {
               Kelola pendaftaran magang dan logbook kegiatanmu dengan mudah dan
               profesional.
             </motion.p>
-          </div>
-
-          <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none z-0">
-            <svg
-              viewBox="0 0 1440 320"
-              xmlns="http://www.w3.org/2000/svg"
-              preserveAspectRatio="none"
-              className="w-full h-32 sm:h-40"
-            >
-              <path fill="#ffffff">
-                <animate
-                  attributeName="d"
-                  dur="5s"
-                  repeatCount="indefinite"
-                  values="M0,160 C320,280 1120,40 1440,160 L1440,320 L0,320 Z;
-                          M0,180 C400,40 1040,280 1440,140 L1440,320 L0,320 Z;
-                          M0,140 C380,300 1080,60 1440,180 L1440,320 L0,320 Z;
-                          M0,160 C320,280 1120,40 1440,160 L1440,320 L0,320 Z"
-                />
-              </path>
-            </svg>
-          </div>
-        </section>
-
-        {/* LinkButtons Section */}
-        <section className="bg-white py-16">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-2xl sm:text-3xl font-bold text-center text-gray-800 mb-6">
-              Aksi Cepat Magang
-            </h2>
-            <p className="text-center text-gray-500 mb-10">
-              Pilih fitur yang ingin kamu gunakan
-            </p>
-            <LinkButtons />
           </div>
         </section>
       </div>

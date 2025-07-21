@@ -1,5 +1,5 @@
 import Head from "next/head";
-import Navbar from "../components/Navbar";
+import Navbar2 from "../components/Navbar2";
 import HeroSection from "../components/Herosection";
 import Status from "../components/Status";
 import Feature from "../components/Feature";
@@ -19,7 +19,7 @@ export default function Home() {
         />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
-      <Navbar />
+      <Navbar2 />
       <HeroSection />
       <Status />
       <Feature />

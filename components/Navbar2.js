@@ -9,13 +9,15 @@ import { motion } from "framer-motion";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-  const [lastScrollY, setLastScrollY] = useState(0);
   const [navbarStyle, setNavbarStyle] = useState("bg-transparent text-white");
   const [user, setUser] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [statusMagang, setStatusMagang] = useState(null);
   const router = useRouter();
+
+  const profilePicture = user?.profilePicture || "/images/kokomi.png";
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -26,27 +28,42 @@ export default function Navbar() {
     }
   }, []);
 
+  // ✅ Scroll only affects desktop navbar
   useEffect(() => {
     const controlNavbar = () => {
-      if (window.scrollY > 50) {
-        setNavbarStyle("bg-white text-black shadow-md");
-      } else {
-        setNavbarStyle("bg-transparent text-white");
+      if (window.innerWidth >= 768) {
+        if (window.scrollY > 50) {
+          setNavbarStyle("bg-white text-black shadow-md");
+        } else {
+          setNavbarStyle("bg-transparent text-white");
+        }
       }
-      setLastScrollY(window.scrollY);
     };
-
     window.addEventListener("scroll", controlNavbar);
     return () => window.removeEventListener("scroll", controlNavbar);
-  }, [lastScrollY]);
+  }, []);
 
-  const handleScroll = (id) => {
-    const element = document.querySelector(id);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-      setIsOpen(false);
+  // ✅ Atur default style untuk mobile (selalu putih)
+  useEffect(() => {
+    if (window.innerWidth < 768) {
+      setNavbarStyle("bg-white text-black");
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const fetchStatus = async () => {
+      if (!user?.email) return;
+      try {
+        const res = await fetch("http://localhost:5000/api/pendaftaran");
+        const data = await res.json();
+        const dataUser = data.find((item) => item.email === user.email);
+        setStatusMagang(dataUser ? dataUser.status : "belum_mendaftar");
+      } catch (err) {
+        console.error("Gagal mengambil status pendaftaran:", err);
+      }
+    };
+    fetchStatus();
+  }, [user]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -56,50 +73,73 @@ export default function Navbar() {
     setUser(null);
     setShowProfileMenu(false);
     setShowLogoutConfirm(false);
-
     toast.success("Berhasil logout!", {
       position: "bottom-right",
       autoClose: 3000,
     });
-
     router.push("/login");
   };
 
-  const toggleProfileMenu = () => setShowProfileMenu(!showProfileMenu);
-  const confirmLogout = () => setShowLogoutConfirm(true);
-  const cancelLogout = () => setShowLogoutConfirm(false);
-  const profilePicture = user?.profilePicture || "/images/kokomi.png";
-
   return (
     <nav
-      className={`fixed w-full z-50 transition-all duration-300 ${navbarStyle}`}
+      className={`fixed top-0 w-full z-50 transition-all duration-300 ${navbarStyle}`}
     >
-      <div className="max-w-7xl mx-auto hidden md:flex justify-between items-center py-4 px-6 w-full">
+      {/* Desktop */}
+      <div className="max-w-7xl mx-auto hidden md:flex justify-between items-center py-4 px-6">
         <h1
-          onClick={() => handleScroll("#home")}
-          className="text-2xl sm:text-3xl font-bold cursor-pointer hover:text-blue-500 transition"
+          onClick={() => router.push("/user/dashboard")}
+          className="text-2xl font-bold cursor-pointer hover:text-blue-500"
         >
           Magin
         </h1>
 
         <div className="flex space-x-8">
           <button
-            onClick={() => handleScroll("#home")}
+            onClick={() => router.push("/user/dashboard")}
             className="hover:text-blue-500"
           >
             Beranda
           </button>
           <button
-            onClick={() => handleScroll("#about")}
+            onClick={() => router.push("/user/pendaftaran")}
+            className="hover:text-blue-500"
+          >
+            Program Magang
+          </button>
+          <button
+            onClick={() => router.push("/user/pendaftaran")}
             className="hover:text-blue-500"
           >
             Tentang Kami
           </button>
           <button
-            onClick={() => handleScroll("#program")}
-            className="hover:text-blue-500"
+            onClick={() => {
+              if (isLoggedIn) {
+                router.push("/user/pendaftaran");
+              } else {
+                toast.warn("Silakan login terlebih dahulu");
+              }
+            }}
+            className={`hover:text-blue-500 ${
+              !isLoggedIn && "opacity-50 cursor-not-allowed"
+            }`}
           >
-            Program Magang
+            Pendaftaran
+          </button>
+
+          <button
+            onClick={() => {
+              if (isLoggedIn) {
+                router.push("/user/logbook");
+              } else {
+                toast.warn("Silakan login terlebih dahulu");
+              }
+            }}
+            className={`hover:text-blue-500 ${
+              !isLoggedIn && "opacity-50 cursor-not-allowed"
+            }`}
+          >
+            Logbook
           </button>
         </div>
 
@@ -109,23 +149,31 @@ export default function Navbar() {
               <img
                 src={profilePicture}
                 alt="Profile"
-                className="w-10 h-10 rounded-full cursor-pointer"
-                onClick={toggleProfileMenu}
+                className="w-10 h-10 rounded-full aspect-square object-cover cursor-pointer"
+                onClick={() => setShowProfileMenu(!showProfileMenu)}
               />
               {showProfileMenu && (
                 <motion.div
                   initial={{ opacity: 0, y: -20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3 }}
-                  className="absolute top-full mt-2 right-0 w-64 bg-white border rounded-lg shadow-xl z-50 overflow-hidden text-black"
+                  className="absolute top-full mt-2 right-0 w-64 bg-white text-black border rounded-lg shadow-xl z-50 overflow-hidden"
                 >
                   <div className="px-4 py-3 border-b">
-                    <p className="text-sm font-semibold">
-                      {user?.name || "Pengguna"}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {user?.email || "email@example.com"}
-                    </p>
+                    <p className="text-sm font-semibold">Hi, {user?.name}</p>
+                    <p className="text-xs text-gray-500">{user?.email}</p>
+                    <div className="mt-2 flex items-center gap-2">
+                      <span className="text-xs font-medium">Status:</span>
+                      {statusMagang === "disetujui" ? (
+                        <span className="text-green-600 text-sm font-semibold">
+                          🟢 Terdaftar
+                        </span>
+                      ) : (
+                        <span className="text-red-600 text-sm font-semibold">
+                          🔴 Belum Terdaftar
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div className="py-2">
                     <button
@@ -141,7 +189,7 @@ export default function Navbar() {
                       Edit Profile
                     </button>
                     <button
-                      onClick={confirmLogout}
+                      onClick={() => setShowLogoutConfirm(true)}
                       className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
                     >
                       Sign Out
@@ -154,12 +202,12 @@ export default function Navbar() {
             <>
               <Link href="/login">
                 <button className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
-                  Login
+                  Masuk
                 </button>
               </Link>
               <Link href="/register">
                 <button className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
-                  Register
+                  Daftar
                 </button>
               </Link>
             </>
@@ -167,11 +215,11 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile */}
       <div className="md:hidden flex justify-between items-center py-4 px-6">
         <h1
-          onClick={() => handleScroll("#home")}
-          className="text-2xl sm:text-3xl font-bold cursor-pointer hover:text-blue-500"
+          onClick={() => router.push("/user/dashboard")}
+          className="text-2xl font-bold cursor-pointer hover:text-blue-500"
         >
           Magin
         </h1>
@@ -186,22 +234,31 @@ export default function Navbar() {
       {isOpen && (
         <div className="md:hidden bg-white text-black py-4 shadow-md flex flex-col items-center space-y-4">
           <button
-            onClick={() => handleScroll("#home")}
+            onClick={() => {
+              router.push("/user/dashboard");
+              setIsOpen(false);
+            }}
             className="hover:text-blue-500"
           >
             Beranda
           </button>
           <button
-            onClick={() => handleScroll("#about")}
+            onClick={() => {
+              router.push("/user/pendaftaran");
+              setIsOpen(false);
+            }}
             className="hover:text-blue-500"
           >
-            Tentang Kami
+            Pendaftaran
           </button>
           <button
-            onClick={() => handleScroll("#program")}
+            onClick={() => {
+              router.push("/user/logbook");
+              setIsOpen(false);
+            }}
             className="hover:text-blue-500"
           >
-            Program Magang
+            Logbook
           </button>
 
           {isLoggedIn ? (
@@ -209,8 +266,8 @@ export default function Navbar() {
               <img
                 src={profilePicture}
                 alt="Profile"
-                className="w-10 h-10 rounded-full cursor-pointer"
-                onClick={toggleProfileMenu}
+                className="w-10 h-10 rounded-full aspect-square object-cover cursor-pointer"
+                onClick={() => setShowProfileMenu(!showProfileMenu)}
               />
               {showProfileMenu && (
                 <motion.div
@@ -219,12 +276,8 @@ export default function Navbar() {
                   transition={{ duration: 0.3 }}
                   className="bg-white w-64 rounded-lg shadow-lg p-4 text-left border"
                 >
-                  <p className="text-sm font-semibold">
-                    {user?.name || "Pengguna"}
-                  </p>
-                  <p className="text-xs text-gray-500 mb-2">
-                    {user?.email || "email@example.com"}
-                  </p>
+                  <p className="text-sm font-semibold">Hi, {user?.name}</p>
+                  <p className="text-xs text-gray-500 mb-2">{user?.email}</p>
                   <button
                     onClick={() => router.push("/user/dashboard")}
                     className="block w-full text-left px-2 py-1 text-sm hover:bg-gray-100"
@@ -238,7 +291,7 @@ export default function Navbar() {
                     Edit Profile
                   </button>
                   <button
-                    onClick={confirmLogout}
+                    onClick={() => setShowLogoutConfirm(true)}
                     className="block w-full text-left px-2 py-1 text-sm text-red-600 hover:bg-gray-100"
                   >
                     Sign Out
@@ -286,7 +339,7 @@ export default function Navbar() {
                 Ya, Logout
               </button>
               <button
-                onClick={cancelLogout}
+                onClick={() => setShowLogoutConfirm(false)}
                 className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400"
               >
                 Batal
