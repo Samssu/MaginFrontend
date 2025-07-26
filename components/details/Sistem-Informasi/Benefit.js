@@ -1,0 +1,57 @@
+"use client";
+
+import { CheckCircle } from "lucide-react";
+import Image from "next/image";
+
+export default function InformaticsBenefitsSection() {
+  return (
+    <section className="py-20 px-6 bg-white">
+      <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-10 items-center">
+        {/* Left - Text Content */}
+        <div>
+          <p className="uppercase text-blue-600 font-semibold mb-3 tracking-wide">
+            KEUNTUNGAN JURUSAN
+          </p>
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6 leading-snug">
+            Keunggulan Jurusan Teknik Informatika
+          </h2>
+          <ul className="space-y-5 text-gray-700">
+            <li className="flex items-start gap-3">
+              <CheckCircle className="text-blue-600 mt-1" />
+              <span>
+                Peluang kerja luas di bidang IT, data, dan teknologi masa depan.
+              </span>
+            </li>
+            <li className="flex items-start gap-3">
+              <CheckCircle className="text-blue-600 mt-1" />
+              <span>Pembelajaran berbasis proyek dan teknologi terkini.</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <CheckCircle className="text-blue-600 mt-1" />
+              <span>
+                Dukungan inkubasi startup dan pengembangan karir mandiri.
+              </span>
+            </li>
+            <li className="flex items-start gap-3">
+              <CheckCircle className="text-blue-600 mt-1" />
+              <span>
+                Kolaborasi dengan perusahaan teknologi global & nasional.
+              </span>
+            </li>
+          </ul>
+        </div>
+
+        {/* Right - Image */}
+        <div className="relative">
+          <Image
+            src="/images/It.jpg" // ✅ pastikan file ini ada di /public/images/
+            alt="Mahasiswa Teknik Informatika"
+            width={600}
+            height={400}
+            className="rounded-2xl object-cover shadow-xl"
+          />
+        </div>
+      </div>
+    </section>
+  );
+}

@@ -4,8 +4,10 @@ import HeroSection from "../components/Herosection";
 import Status from "../components/Status";
 import Feature from "../components/Feature";
 import MagangSlider from "../components/MagangSlider";
-import TestimonialSlider from "@/components/TestimoniSlider";
+import TestimonialSlider from "../components/TestimoniSlider";
+import Magangcard from "../components/Magangcard";
 import InternshipHero from "../components/InternshipHero";
+import SectionPertanyaan from "../components/SectionPertanyaan";
 import Footer from "../components/Footer";
 
 export default function Home() {
@@ -24,7 +26,9 @@ export default function Home() {
       <Status />
       <Feature />
       <MagangSlider />
+      <Magangcard />
       <TestimonialSlider />
+      <SectionPertanyaan />
       <InternshipHero />
       <Footer />
     </>

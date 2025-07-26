@@ -1,42 +1,54 @@
+// components/TestimonialSection.js
 "use client";
+
 import { useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
+import { KanbanSquare, Users2, Database } from "lucide-react";
 
 const testimonials = [
   {
-    name: "Herman Miller",
-    photo: "/images/pasfoto1.jpg",
+    name: "Rizky Ananda",
+    photo: "/images/pasfoto1.png",
     quote:
-      "Program magang ini membantu saya memahami dunia kerja nyata di bidang teknologi informasi. Terima kasih atas bimbingan dan ilmunya!",
+      "Magang ini benar-benar membuka mata saya terhadap dunia kerja. Dari teori di kampus ke praktik nyata, semuanya terasa menantang dan menyenangkan.",
   },
   {
     name: "Dewi Lestari",
     photo: "/images/pasfoto2.jpg",
     quote:
-      "Saya belajar langsung dari mentor yang profesional. Ini pengalaman yang sangat berharga bagi masa depan karier saya.",
+      "Saya berkesempatan terlibat dalam proyek-proyek besar dan belajar langsung dari mentor yang luar biasa. Pengalaman ini sangat berharga sebelum saya lulus.",
   },
   {
     name: "Arif Budiman",
     photo: "/images/pasfoto3.jpg",
     quote:
-      "Lingkungan kerjanya sangat mendukung. Saya jadi lebih percaya diri menghadapi dunia kerja yang sesungguhnya.",
-  },
-  {
-    name: "Putri Aulia",
-    photo: "/images/pasfoto4.jpg",
-    quote:
-      "Saya tidak hanya belajar teori, tetapi juga praktik langsung bersama tim profesional Kominfo. Luar biasa!",
-  },
-  {
-    name: "Fajar Ramadhan",
-    photo: "/images/pasfoto5.jpg",
-    quote:
-      "Terima kasih Kominfo! Pengalaman magang ini membuka wawasan dan relasi saya di dunia IT.",
+      "Di tempat magang ini, saya merasa benar-benar dilibatkan dan dihargai. Setiap hari membawa pengalaman baru yang memperkaya perspektif saya.",
   },
 ];
 
-export default function TestimonialSlider() {
+const features = [
+  {
+    name: "Manajemen Proyek",
+    Icon: KanbanSquare,
+    result: "Berhasil 98%",
+    color: "bg-blue-100 text-blue-700",
+  },
+  {
+    name: "Manajemen Tim",
+    Icon: Users2,
+    result: "Berhasil 95%",
+    color: "bg-green-100 text-green-700",
+  },
+  {
+    name: "Penyimpanan Aman",
+    Icon: Database,
+    result: "Berhasil 97%",
+    color: "bg-purple-100 text-purple-700",
+  },
+];
+
+export default function TestimonialSection() {
   const [index, setIndex] = useState(0);
   const [direction, setDirection] = useState(0);
 
@@ -51,85 +63,107 @@ export default function TestimonialSlider() {
   };
 
   const variants = {
-    enter: (dir) => ({
-      x: dir > 0 ? 300 : -300,
-      opacity: 0,
-    }),
-    center: {
-      x: 0,
-      opacity: 1,
-    },
-    exit: (dir) => ({
-      x: dir > 0 ? -300 : 300,
-      opacity: 0,
-    }),
+    enter: (dir) => ({ opacity: 0, x: dir > 0 ? 100 : -100 }),
+    center: { opacity: 1, x: 0 },
+    exit: (dir) => ({ opacity: 0, x: dir > 0 ? -100 : 100 }),
   };
 
   return (
-    <section className="py-20 px-4 sm:px-6 bg-gradient-to-br from-blue-50 to-white">
-      <div className="max-w-4xl mx-auto text-center relative">
-        <h2 className="text-3xl sm:text-4xl font-bold mb-12 text-gray-800 leading-tight">
-          Dipercaya oleh Mahasiswa Terbaik <br />
-          dari Berbagai Universitas
-        </h2>
+    <section className="relative py-14 px-4 sm:px-8 text-center overflow-hidden">
+      {/* Background Image */}
+      {/* Background Icon Besar */}
+      <div className="absolute top-10 left-1/2 -translate-x-1/2 -z-10 opacity-20">
+        <Image
+          src="/images/dunia.jpg"
+          alt="Decorative background"
+          width={1000}
+          height={500}
+          className="object-contain"
+          priority
+        />
+      </div>
 
-        <div className="relative">
-          <AnimatePresence custom={direction} mode="wait">
-            <motion.div
-              key={index}
-              custom={direction}
-              variants={variants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              transition={{ duration: 0.5 }}
-              className="bg-white p-6 sm:p-8 rounded-[80px] shadow-xl flex flex-col md:flex-row items-center justify-center gap-6 md:gap-10"
-            >
-              {/* Avatar */}
-              <div className="relative w-28 h-28 rounded-full overflow-hidden shadow-lg ring-4 ring-blue-200 shrink-0">
-                <Image
-                  src={testimonials[index].photo}
-                  alt={testimonials[index].name}
-                  fill
-                  className="object-cover"
-                />
-                <div className="absolute -top-2 -left-2 w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-lg font-bold shadow">
-                  “
-                </div>
+      <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-800 mb-12 relative z-10">
+        Dipercaya oleh banyak orang
+      </h2>
+
+      {/* Testimoni Carousel */}
+      <div className="max-w-3xl mx-auto relative mb-16 z-10">
+        <AnimatePresence mode="wait" custom={direction}>
+          <motion.div
+            key={index}
+            custom={direction}
+            variants={variants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ duration: 0.4 }}
+            className="flex flex-col items-center gap-6"
+          >
+            <div className="relative w-24 h-24 rounded-full overflow-hidden shadow-md">
+              <Image
+                src={testimonials[index].photo}
+                alt={testimonials[index].name}
+                fill
+                className="object-cover"
+                sizes="96px"
+              />
+              <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-blue-600 text-white text-2xl rounded-full flex items-center justify-center">
+                ”
               </div>
+            </div>
 
-              {/* Isi */}
-              <div className="text-left max-w-md">
-                <p className="text-base sm:text-lg text-gray-700 leading-relaxed mb-4 italic">
-                  {testimonials[index].quote}
-                </p>
-                <p className="font-semibold text-gray-900 text-sm sm:text-base">
-                  {testimonials[index].name}
-                </p>
-              </div>
-            </motion.div>
-          </AnimatePresence>
+            <p className="text-base sm:text-lg text-gray-700 max-w-xl leading-relaxed italic">
+              "{testimonials[index].quote}"
+            </p>
+            <p className="text-lg font-bold text-gray-900">
+              {testimonials[index].name}
+            </p>
+          </motion.div>
+        </AnimatePresence>
 
-          {/* Navigasi */}
-          <div className="absolute -left-12 top-1/2 -translate-y-1/2 hidden sm:block">
-            <button
-              onClick={prev}
-              className="w-10 h-10 rounded-full bg-white shadow-md hover:bg-blue-100 text-xl transition"
-              aria-label="Sebelumnya"
-            >
-              ←
-            </button>
-          </div>
-          <div className="absolute -right-12 top-1/2 -translate-y-1/2 hidden sm:block">
-            <button
-              onClick={next}
-              className="w-10 h-10 rounded-full bg-white shadow-md hover:bg-blue-100 text-xl transition"
-              aria-label="Selanjutnya"
-            >
-              →
-            </button>
-          </div>
+        {/* Navigasi */}
+        <div className="absolute left-0 top-1/2 -translate-y-1/2">
+          <button
+            onClick={prev}
+            className="w-8 h-8 bg-white shadow rounded-full hover:bg-blue-100 transition"
+            aria-label="Prev"
+          >
+            ←
+          </button>
         </div>
+        <div className="absolute right-0 top-1/2 -translate-y-1/2">
+          <button
+            onClick={next}
+            className="w-8 h-8 bg-white shadow rounded-full hover:bg-blue-100 transition"
+            aria-label="Next"
+          >
+            →
+          </button>
+        </div>
+      </div>
+
+      {/* Feature Section */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-5xl mx-auto relative z-10">
+        {features.map((feature, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.15, duration: 0.4 }}
+            className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow p-5 flex flex-col items-center"
+          >
+            <div
+              className={`w-10 h-10 mb-3 flex items-center justify-center rounded-full ${feature.color}`}
+            >
+              <feature.Icon className="w-5 h-5" />
+            </div>
+            <p className="text-sm font-semibold text-gray-800 mb-1">
+              {feature.name}
+            </p>
+            <p className="text-base font-bold">{feature.result}</p>
+          </motion.div>
+        ))}
       </div>
     </section>
   );

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import AdminLayout from "../../components/layouts/AdminLayouts";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { UserCircle2 } from "lucide-react";
+import { UserCircle2, MoreVertical } from "lucide-react";
 
 export default function Pembimbing() {
   const [pembimbing, setPembimbing] = useState([]);
@@ -15,6 +15,8 @@ export default function Pembimbing() {
     password: "",
     divisi: "",
   });
+  const [selectedPembimbing, setSelectedPembimbing] = useState(null);
+  const [mahasiswaBimbingan, setMahasiswaBimbingan] = useState([]);
 
   useEffect(() => {
     fetchPembimbing();
@@ -25,25 +27,53 @@ export default function Pembimbing() {
       const res = await axios.get("http://localhost:5000/api/pembimbing");
       setPembimbing(res.data);
     } catch (error) {
-      toast.error("Gagal memuat data pembimbing", {
-        position: "bottom-right",
-      });
+      toast.error("Gagal memuat data pembimbing", { position: "bottom-right" });
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:5000/api/pembimbing", {
-        ...form,
-        role: "pembimbing",
-      });
+      await axios.post("http://localhost:5000/pembimbing", form);
       toast.success("Pembimbing berhasil ditambahkan");
       setShowModal(false);
       setForm({ nama: "", email: "", password: "", divisi: "" });
       fetchPembimbing();
     } catch (err) {
-      toast.error("Gagal menambahkan pembimbing");
+      toast.error(
+        err.response?.data?.message || "Gagal menambahkan pembimbing"
+      );
+    }
+  };
+
+  const fetchMahasiswa = async (pembimbingId) => {
+    try {
+      const res = await axios.get(
+        `http://localhost:5000/api/pembimbing/${pembimbingId}/mahasiswa`
+      );
+      setMahasiswaBimbingan(res.data);
+    } catch (err) {
+      toast.error("Gagal memuat mahasiswa bimbingan");
+    }
+  };
+
+  const toggleStatus = async (id, status) => {
+    try {
+      await axios.put(`http://localhost:5000/api/pembimbing/${id}/status`, {
+        status,
+      });
+      fetchPembimbing();
+    } catch (err) {
+      toast.error("Gagal memperbarui status");
+    }
+  };
+
+  const deletePembimbing = async (id) => {
+    try {
+      await axios.delete(`http://localhost:5000/api/pembimbing/${id}`);
+      fetchPembimbing();
+    } catch (err) {
+      toast.error("Gagal menghapus pembimbing");
     }
   };
 
@@ -56,18 +86,17 @@ export default function Pembimbing() {
             Data Pembimbing Magang
           </h2>
           <p className="text-gray-500 text-sm">
-            Informasi lengkap pembimbing yang aktif di sistem.
+            Klik nama pembimbing untuk melihat mahasiswa bimbingan.
           </p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition"
+          className="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700"
         >
           Tambah Pembimbing
         </button>
       </div>
 
-      {/* Tabel */}
       <div className="overflow-x-auto bg-white rounded-xl shadow">
         <table className="min-w-full text-sm">
           <thead>
@@ -77,15 +106,21 @@ export default function Pembimbing() {
               <th className="p-3 text-left">Divisi</th>
               <th className="p-3 text-left">Jumlah Mahasiswa</th>
               <th className="p-3 text-left">Status</th>
+              <th className="p-3 text-left">Aksi</th>
             </tr>
           </thead>
           <tbody>
             {pembimbing.map((item) => (
-              <tr
-                key={item._id}
-                className="border-t hover:bg-gray-50 transition-all duration-200"
-              >
-                <td className="p-3 font-medium">{item.nama}</td>
+              <tr key={item._id} className="border-t hover:bg-gray-50">
+                <td
+                  className="p-3 font-medium cursor-pointer text-blue-600"
+                  onClick={() => {
+                    setSelectedPembimbing(item._id);
+                    fetchMahasiswa(item._id);
+                  }}
+                >
+                  {item.nama}
+                </td>
                 <td className="p-3">{item.email}</td>
                 <td className="p-3">{item.divisi}</td>
                 <td className="p-3 text-center">{item.jumlahMahasiswa || 0}</td>
@@ -100,11 +135,32 @@ export default function Pembimbing() {
                     {item.status}
                   </span>
                 </td>
+                <td className="p-3 relative">
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() =>
+                        toggleStatus(
+                          item._id,
+                          item.status === "aktif" ? "tidak aktif" : "aktif"
+                        )
+                      }
+                      className="text-xs text-blue-600 underline"
+                    >
+                      {item.status === "aktif" ? "Nonaktifkan" : "Aktifkan"}
+                    </button>
+                    <button
+                      onClick={() => deletePembimbing(item._id)}
+                      className="text-xs text-red-600 underline"
+                    >
+                      Hapus
+                    </button>
+                  </div>
+                </td>
               </tr>
             ))}
             {pembimbing.length === 0 && (
               <tr>
-                <td colSpan="5" className="text-center p-4 text-gray-500">
+                <td colSpan="6" className="text-center p-4 text-gray-500">
                   Tidak ada data pembimbing.
                 </td>
               </tr>
@@ -112,6 +168,19 @@ export default function Pembimbing() {
           </tbody>
         </table>
       </div>
+
+      {selectedPembimbing && mahasiswaBimbingan.length > 0 && (
+        <div className="mt-6 bg-white p-4 rounded shadow">
+          <h3 className="text-lg font-semibold mb-2">Mahasiswa Bimbingan</h3>
+          <ul className="list-disc ml-5 space-y-1">
+            {mahasiswaBimbingan.map((mhs) => (
+              <li key={mhs._id}>
+                {mhs.nama} - {mhs.nim}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Modal Tambah Pembimbing */}
       {showModal && (
@@ -158,7 +227,6 @@ export default function Pembimbing() {
                 <option value="Multimedia">Multimedia</option>
                 <option value="Administrasi">Administrasi</option>
               </select>
-
               <div className="flex justify-end gap-2">
                 <button
                   type="button"

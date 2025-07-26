@@ -80,7 +80,7 @@ export default function UserDashboard() {
   return (
     <>
       <Head>
-        <title>Dashboard Pengguna | Pendaftaran Magang Kominfo</title>
+        <title>Pemberitahuan | Pendaftaran Magang Kominfo</title>
         <meta
           name="description"
           content="Dashboard pengguna untuk mengelola pendaftaran magang dan logbook kegiatan."
@@ -93,10 +93,11 @@ export default function UserDashboard() {
         <Navbar2 />
 
         {/* Hero */}
-        <section className="relative min-h-[50vh] flex items-center justify-center text-center overflow-hidden">
+        <section className="relative min-h-[40vh] flex items-center justify-center text-center overflow-hidden">
+          {/* Background Image */}
           <div className="absolute inset-0 z-0">
             <Image
-              src="/images/hero.jpg"
+              src="/images/bggallery.png"
               alt="Hero Background"
               fill
               className="object-cover"
@@ -104,6 +105,8 @@ export default function UserDashboard() {
             />
             <div className="absolute inset-0 bg-black/60" />
           </div>
+
+          {/* Heading Text */}
           <div className="relative z-10 px-6 sm:px-10 max-w-4xl mx-auto text-white">
             <motion.h1
               variants={fadeInVariant}
@@ -112,18 +115,32 @@ export default function UserDashboard() {
               custom={0.2}
               className="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-4"
             >
-              Selamat Datang di Dashboard
+              Pemberitahuan
             </motion.h1>
-            <motion.p
-              variants={fadeInVariant}
-              initial="hidden"
-              animate="visible"
-              custom={0.4}
-              className="text-lg sm:text-xl text-gray-200"
+          </div>
+
+          {/* Animated Wave */}
+          <div className="absolute bottom-0 left-0 w-full z-10 pointer-events-none">
+            <svg
+              viewBox="0 0 1440 320"
+              xmlns="http://www.w3.org/2000/svg"
+              preserveAspectRatio="none"
+              className="w-full h-24 sm:h-32"
             >
-              Kelola pendaftaran magang dan logbook kegiatanmu dengan mudah dan
-              profesional.
-            </motion.p>
+              <path fill="#ffffff">
+                <animate
+                  attributeName="d"
+                  dur="6s"
+                  repeatCount="indefinite"
+                  values="
+            M0,160 C320,280 1120,40 1440,160 L1440,320 L0,320 Z;
+            M0,180 C400,40 1040,280 1440,140 L1440,320 L0,320 Z;
+            M0,140 C380,300 1080,60 1440,180 L1440,320 L0,320 Z;
+            M0,160 C320,280 1120,40 1440,160 L1440,320 L0,320 Z
+          "
+                />
+              </path>
+            </svg>
           </div>
         </section>
 

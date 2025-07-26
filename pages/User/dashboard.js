@@ -8,6 +8,7 @@ import Navbar2 from "@/components/Navbar2";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import LinkButtons from "@/components/LinkButtons";
+import Footer from "@/components/Footer";
 
 const fadeInVariant = {
   hidden: { opacity: 0, y: 20 },
@@ -117,18 +118,8 @@ export default function UserDashboard() {
           </div>
         </section>
 
-        {/* LinkButtons Section */}
-        <section className="bg-white py-16">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-2xl sm:text-3xl font-bold text-center text-gray-800 mb-6">
-              Aksi Cepat Magang
-            </h2>
-            <p className="text-center text-gray-500 mb-10">
-              Pilih fitur yang ingin kamu gunakan
-            </p>
-            <LinkButtons />
-          </div>
-        </section>
+        <LinkButtons />
+        <Footer />
       </div>
     </>
   );
