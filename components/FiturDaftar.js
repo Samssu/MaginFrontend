@@ -277,7 +277,7 @@ export default function PendaftaranMagang() {
 
             <div>
               <label className="block mb-1 font-medium text-gray-600">
-                Divisi Tujuan <span className="text-red-500">*</span>
+                Jurusan <span className="text-red-500">*</span>
               </label>
               <select
                 name="divisi"
@@ -286,10 +286,17 @@ export default function PendaftaranMagang() {
                 required
                 className="w-full border rounded px-3 py-2"
               >
-                <option value="">Pilih Divisi</option>
-                <option>IT</option>
-                <option>Humas</option>
-                <option>Keuangan</option>
+                <option value="">Pilih Jurusan</option>
+                <option>Teknik Informatika</option>
+                <option>Sistem Informasi</option>
+                <option>Ilmu Komputer</option>
+                <option>Teknologi Informasi</option>
+                <option>Manajemen Informatika</option>
+                <option>Teknik Komputer</option>
+                <option>Rekayasa Perangkat Lunak</option>
+                <option>Jaringan Komputer</option>
+                <option>Multimedia</option>
+                <option>Komputer Akuntansi</option>
               </select>
             </div>
 

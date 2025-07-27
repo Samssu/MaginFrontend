@@ -7,7 +7,7 @@ import Head from "next/head";
 import Navbar2 from "@/components/Navbar2";
 import Footer from "@/components/Footer";
 import HeroSection from "@/components/details/Teknik-Informatika/HeroSection";
-import Informatif from ".../components/details/Teknik-Informatika/Informatif";
+import Informatif from "@/components/details/Teknik-Informatika/Informatif";
 import Role from "@/components/details/Teknik-Informatika/Role";
 import Benefit from "@/components/details/Teknik-Informatika/Benefit";
 import Magangcard from "@/components/Magangcard";

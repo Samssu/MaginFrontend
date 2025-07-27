@@ -1,32 +1,32 @@
 "use client";
-import { Database, BarChart3, Users, ClipboardList, Star } from "lucide-react";
+import { Cpu, Clock, UserCog, CheckCircle2, Star } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function FeatureStatsSection() {
   const features = [
     {
-      icon: <Database className="w-8 h-8 text-blue-600" />,
-      title: "Manajemen Data",
+      icon: <Cpu className="w-8 h-8 text-blue-600" />,
+      title: "Pengembangan Aplikasi",
       description:
-        "Mahasiswa mempelajari pengelolaan dan analisis data untuk mendukung pengambilan keputusan bisnis.",
+        "Mahasiswa belajar membangun aplikasi web dan mobile menggunakan teknologi modern seperti React, Node.js, dan lainnya.",
     },
     {
-      icon: <BarChart3 className="w-8 h-8 text-blue-600" />,
-      title: "Analisis Sistem",
+      icon: <Clock className="w-8 h-8 text-blue-600" />,
+      title: "Efisiensi Waktu",
       description:
-        "Terlibat langsung dalam analisis kebutuhan dan perancangan sistem informasi yang efektif.",
+        "Program magang fleksibel yang dapat dijalankan berdampingan dengan kegiatan akademik.",
     },
     {
-      icon: <Users className="w-8 h-8 text-blue-600" />,
-      title: "Kolaborasi Tim",
+      icon: <UserCog className="w-8 h-8 text-blue-600" />,
+      title: "Mentor Berpengalaman",
       description:
-        "Bekerja sama dalam tim lintas divisi untuk mengembangkan solusi berbasis sistem informasi.",
+        "Didampingi oleh developer profesional dan praktisi industri perangkat lunak selama program berlangsung.",
     },
     {
-      icon: <ClipboardList className="w-8 h-8 text-blue-600" />,
-      title: "Dokumentasi Proyek",
+      icon: <CheckCircle2 className="w-8 h-8 text-blue-600" />,
+      title: "Sertifikat & Portofolio",
       description:
-        "Meningkatkan kemampuan dokumentasi dan penyusunan laporan proyek secara profesional.",
+        "Setiap peserta mendapatkan sertifikat resmi dan portofolio proyek nyata untuk karier profesional.",
     },
   ];
 
@@ -36,10 +36,10 @@ export default function FeatureStatsSection() {
         {/* Heading */}
         <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-12">
           Keunggulan Program Magang <br className="hidden sm:block" />
-          Sistem Informasi
+          Rekayasa Perangkat Lunak
         </h2>
 
-        {/* Features */}
+        {/* Features with animation */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
           {features.map((feature, index) => (
             <motion.div
@@ -67,7 +67,7 @@ export default function FeatureStatsSection() {
             transition={{ duration: 0.5, delay: 0.8 }}
             viewport={{ once: true }}
           >
-            <p className="text-3xl font-bold text-black">4.8</p>
+            <p className="text-3xl font-bold text-black">4.9</p>
             <div className="flex justify-center items-center gap-1 text-blue-600">
               <Star fill="currentColor" className="w-5 h-5" />
               <Star fill="currentColor" className="w-5 h-5" />
@@ -75,7 +75,7 @@ export default function FeatureStatsSection() {
               <Star fill="currentColor" className="w-5 h-5" />
               <Star fill="currentColor" className="w-5 h-5" />
             </div>
-            <p className="text-sm text-gray-500 mt-1">400+ ulasan mahasiswa</p>
+            <p className="text-sm text-gray-500 mt-1">500+ ulasan mahasiswa</p>
           </motion.div>
 
           <motion.div
@@ -84,9 +84,9 @@ export default function FeatureStatsSection() {
             transition={{ duration: 0.5, delay: 1.0 }}
             viewport={{ once: true }}
           >
-            <p className="text-3xl font-bold text-black">92%</p>
+            <p className="text-3xl font-bold text-black">95%</p>
             <p className="text-sm text-gray-500 mt-1">
-              Peningkatan keterampilan kerja setelah magang.
+              Tingkat penyerapan kerja setelah magang.
             </p>
           </motion.div>
 
@@ -96,9 +96,9 @@ export default function FeatureStatsSection() {
             transition={{ duration: 0.5, delay: 1.2 }}
             viewport={{ once: true }}
           >
-            <p className="text-3xl font-bold text-black">250+</p>
+            <p className="text-3xl font-bold text-black">300+</p>
             <p className="text-sm text-gray-500 mt-1">
-              Mitra industri bidang sistem & informasi bisnis.
+              Perusahaan mitra di bidang software & teknologi digital.
             </p>
           </motion.div>
         </div>

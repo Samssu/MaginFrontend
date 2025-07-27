@@ -1,45 +1,43 @@
 "use client";
-import { Database, BarChart3, Users, ClipboardList, Star } from "lucide-react";
+import { BookOpenCheck, Clock, User, CheckCircle2, Star } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function FeatureStatsSection() {
   const features = [
     {
-      icon: <Database className="w-8 h-8 text-blue-600" />,
-      title: "Manajemen Data",
+      icon: <BookOpenCheck className="w-8 h-8 text-blue-600" />,
+      title: "Pembelajaran Praktis",
       description:
-        "Mahasiswa mempelajari pengelolaan dan analisis data untuk mendukung pengambilan keputusan bisnis.",
+        "Terlibat langsung dalam pembukuan, analisis laporan keuangan, dan software akuntansi.",
     },
     {
-      icon: <BarChart3 className="w-8 h-8 text-blue-600" />,
-      title: "Analisis Sistem",
+      icon: <Clock className="w-8 h-8 text-blue-600" />,
+      title: "Waktu Fleksibel",
       description:
-        "Terlibat langsung dalam analisis kebutuhan dan perancangan sistem informasi yang efektif.",
+        "Jadwal magang dapat disesuaikan dengan kegiatan kuliah agar tidak mengganggu akademik.",
     },
     {
-      icon: <Users className="w-8 h-8 text-blue-600" />,
-      title: "Kolaborasi Tim",
+      icon: <User className="w-8 h-8 text-blue-600" />,
+      title: "Pembimbing Profesional",
       description:
-        "Bekerja sama dalam tim lintas divisi untuk mengembangkan solusi berbasis sistem informasi.",
+        "Dibimbing oleh staf keuangan berpengalaman di bidang akuntansi dan sistem informasi.",
     },
     {
-      icon: <ClipboardList className="w-8 h-8 text-blue-600" />,
-      title: "Dokumentasi Proyek",
+      icon: <CheckCircle2 className="w-8 h-8 text-blue-600" />,
+      title: "Sertifikat & Pengalaman",
       description:
-        "Meningkatkan kemampuan dokumentasi dan penyusunan laporan proyek secara profesional.",
+        "Mendapatkan pengalaman nyata dan sertifikat resmi dari instansi pemerintah.",
     },
   ];
 
   return (
     <section className="bg-gray-50 py-20 px-6">
       <div className="max-w-7xl mx-auto text-center">
-        {/* Heading */}
         <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-12">
           Keunggulan Program Magang <br className="hidden sm:block" />
-          Sistem Informasi
+          Komputer Akuntansi
         </h2>
 
-        {/* Features */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
           {features.map((feature, index) => (
             <motion.div
@@ -59,7 +57,6 @@ export default function FeatureStatsSection() {
           ))}
         </div>
 
-        {/* Stats */}
         <div className="flex flex-col sm:flex-row justify-center gap-10 text-center text-gray-800 text-lg font-medium">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -75,7 +72,7 @@ export default function FeatureStatsSection() {
               <Star fill="currentColor" className="w-5 h-5" />
               <Star fill="currentColor" className="w-5 h-5" />
             </div>
-            <p className="text-sm text-gray-500 mt-1">400+ ulasan mahasiswa</p>
+            <p className="text-sm text-gray-500 mt-1">300+ ulasan mahasiswa</p>
           </motion.div>
 
           <motion.div
@@ -86,7 +83,7 @@ export default function FeatureStatsSection() {
           >
             <p className="text-3xl font-bold text-black">92%</p>
             <p className="text-sm text-gray-500 mt-1">
-              Peningkatan keterampilan kerja setelah magang.
+              Tingkat penyerapan kerja setelah magang.
             </p>
           </motion.div>
 
@@ -96,9 +93,9 @@ export default function FeatureStatsSection() {
             transition={{ duration: 0.5, delay: 1.2 }}
             viewport={{ once: true }}
           >
-            <p className="text-3xl font-bold text-black">250+</p>
+            <p className="text-3xl font-bold text-black">200+</p>
             <p className="text-sm text-gray-500 mt-1">
-              Mitra industri bidang sistem & informasi bisnis.
+              Mitra industri di bidang akuntansi & keuangan.
             </p>
           </motion.div>
         </div>

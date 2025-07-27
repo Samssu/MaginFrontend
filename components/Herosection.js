@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { Megaphone } from "lucide-react";
 
 const fadeInVariant = {
   hidden: { opacity: 0, y: 20 },
@@ -46,13 +47,21 @@ const HeroSection = () => {
           initial="hidden"
           animate="visible"
         >
-          <motion.p
+          <motion.div
             variants={fadeInVariant}
             custom={0.2}
-            className="text-sm sm:text-base uppercase tracking-widest text-sky-400 font-semibold"
+            className="inline-flex items-center gap-2 px-4 py-1 text-sm sm:text-base uppercase tracking-widest font-semibold relative overflow-hidden"
           >
-            📢 Pendaftaran Magang Kominfo Kota Palembang
-          </motion.p>
+            {/* Background setengah dengan blur ke arah kanan */}
+            <div className="absolute inset-0 w-1/2 bg-sky-100/10 rounded-l-full" />
+            <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-r from-sky-100/9 via-transparent to-transparent blur-md" />
+
+            {/* Konten */}
+            <Megaphone className="w-5 h-5 text-sky-500 animate-pulse relative z-10" />
+            <span className="relative z-10">
+              Pendaftaran Magang Kominfo Kota Palembang
+            </span>
+          </motion.div>
 
           <motion.h1
             variants={fadeInVariant}
@@ -79,9 +88,13 @@ const HeroSection = () => {
             className="flex flex-col sm:flex-row justify-start gap-4 mt-6"
           >
             <Link href="/register">
-              <button className="bg-gradient-to-r from-blue-500 to-pink-500 hover:opacity-90 text-white font-semibold py-2 px-6 rounded-full">
+              <motion.button
+                whileHover={{ scale: 1.05, x: 5 }}
+                whileTap={{ scale: 0.95 }}
+                className="bg-gradient-to-r from-blue-600 to-blue-400 hover:from-blue-700 hover:to-blue-500 text-white font-semibold py-3 px-8 rounded-full shadow-lg transition-all duration-300"
+              >
                 Daftar Sekarang
-              </button>
+              </motion.button>
             </Link>
           </motion.div>
         </motion.div>

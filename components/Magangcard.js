@@ -50,7 +50,7 @@ const jurusanMagang = [
   {
     label: "Manajemen Informatika",
     icon: <FaProjectDiagram />,
-    image: "/images/manajemen-informatika.jpg",
+    image: "/images/management-informatika.jpg",
   },
   {
     label: "Teknik Komputer",

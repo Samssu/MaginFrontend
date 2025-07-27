@@ -3,7 +3,7 @@
 import { CheckCircle } from "lucide-react";
 import Image from "next/image";
 
-export default function JaringanKomputerBenefitsSection() {
+export default function TechnologyBenefitsSection() {
   return (
     <section className="py-20 px-6 bg-white">
       <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-10 items-center">
@@ -13,35 +13,29 @@ export default function JaringanKomputerBenefitsSection() {
             KEUNTUNGAN JURUSAN
           </p>
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6 leading-snug">
-            Keunggulan Jurusan Jaringan Komputer
+            Keunggulan Jurusan Teknologi Informasi
           </h2>
           <ul className="space-y-5 text-gray-700">
             <li className="flex items-start gap-3">
               <CheckCircle className="text-blue-600 mt-1" />
               <span>
-                Mempelajari desain, instalasi, dan manajemen jaringan komputer
-                modern.
+                Peluang kerja luas di bidang IT, data, dan teknologi masa depan.
+              </span>
+            </li>
+            <li className="flex items-start gap-3">
+              <CheckCircle className="text-blue-600 mt-1" />
+              <span>Pembelajaran berbasis proyek dan teknologi terkini.</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <CheckCircle className="text-blue-600 mt-1" />
+              <span>
+                Dukungan inkubasi startup dan pengembangan karir mandiri.
               </span>
             </li>
             <li className="flex items-start gap-3">
               <CheckCircle className="text-blue-600 mt-1" />
               <span>
-                Dibutuhkan di berbagai sektor seperti ISP, perusahaan IT, dan
-                pemerintahan.
-              </span>
-            </li>
-            <li className="flex items-start gap-3">
-              <CheckCircle className="text-blue-600 mt-1" />
-              <span>
-                Fokus pada keamanan jaringan, konfigurasi perangkat keras, dan
-                cloud networking.
-              </span>
-            </li>
-            <li className="flex items-start gap-3">
-              <CheckCircle className="text-blue-600 mt-1" />
-              <span>
-                Berpeluang berkarier sebagai network engineer, network
-                administrator, atau IT support.
+                Kolaborasi dengan perusahaan teknologi global & nasional.
               </span>
             </li>
           </ul>
@@ -50,8 +44,8 @@ export default function JaringanKomputerBenefitsSection() {
         {/* Right - Image */}
         <div className="relative">
           <Image
-            src="/images/jaringan-komputer.jpg" // Pastikan file ini tersedia di folder public/images
-            alt="Mahasiswa Jaringan Komputer"
+            src="/images/It.jpg"
+            alt="Mahasiswa Teknologi Informasi"
             width={600}
             height={400}
             className="rounded-2xl object-cover shadow-xl"

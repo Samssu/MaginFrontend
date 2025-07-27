@@ -51,12 +51,11 @@ export default function HeroSection() {
               </Link>
             </li>
             <li>{">"}</li>
-            <li className="text-gray-800 font-semibold">Sistem Informasi</li>
+            <li className="text-gray-800 font-semibold">Teknologi Informasi</li>
           </ol>
         </nav>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-          {/* Image + Badge */}
           <motion.div
             className="relative"
             ref={cardRef}
@@ -73,8 +72,8 @@ export default function HeroSection() {
               transition={{ duration: 0.4 }}
             >
               <Image
-                src="/images/sistem-informasi.jpg" // 🔁 Ganti sesuai file kamu
-                alt="Mahasiswa Sistem Informasi"
+                src="/images/teknik-informatika.jpg"
+                alt="Teknologi Informasi"
                 width={600}
                 height={400}
                 className="w-full h-auto object-cover"
@@ -89,12 +88,11 @@ export default function HeroSection() {
                 15
               </div>
               <p className="mt-2 text-base text-gray-700 text-center">
-                Tahun pengalaman
+                Years of experience
               </p>
             </motion.div>
           </motion.div>
 
-          {/* Text Content */}
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -102,15 +100,15 @@ export default function HeroSection() {
             viewport={{ once: true }}
           >
             <span className="uppercase text-blue-600 font-semibold tracking-wider text-base">
-              Sistem Informasi
+              Teknologi Informasi
             </span>
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mt-4 mb-6 leading-tight">
-              Solusi Teknologi & <br /> Bisnis Terintegrasi
+              Profesional dan <br /> Berdedikasi di Dunia Digital.
             </h1>
             <p className="text-gray-600 text-xl mb-6 leading-relaxed">
-              Dengan pengalaman lebih dari 15 tahun, kami mencetak lulusan yang
-              mampu menjembatani kebutuhan bisnis dan teknologi. Fokus kami pada
-              sistem informasi, manajemen data, dan analisis bisnis modern.
+              Kami berpengalaman lebih dari 15 tahun dalam membentuk talenta
+              unggul di bidang teknologi. Program kami dirancang untuk mendukung
+              inovasi, pengembangan software, dan keterampilan IT modern.
             </p>
 
             <div className="flex items-center gap-3 bg-gray-100 p-5 rounded-lg w-fit">

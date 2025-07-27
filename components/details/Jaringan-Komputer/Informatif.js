@@ -51,7 +51,7 @@ export default function HeroSection() {
               </Link>
             </li>
             <li>{">"}</li>
-            <li className="text-gray-800 font-semibold">Sistem Informasi</li>
+            <li className="text-gray-800 font-semibold">Jaringan Komputer</li>
           </ol>
         </nav>
 
@@ -73,8 +73,8 @@ export default function HeroSection() {
               transition={{ duration: 0.4 }}
             >
               <Image
-                src="/images/sistem-informasi.jpg" // 🔁 Ganti sesuai file kamu
-                alt="Mahasiswa Sistem Informasi"
+                src="/images/jaringan-komputer.jpg" // ✅ Ganti gambar
+                alt="Mahasiswa Jaringan Komputer"
                 width={600}
                 height={400}
                 className="w-full h-auto object-cover"
@@ -102,15 +102,15 @@ export default function HeroSection() {
             viewport={{ once: true }}
           >
             <span className="uppercase text-blue-600 font-semibold tracking-wider text-base">
-              Sistem Informasi
+              Jaringan Komputer
             </span>
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mt-4 mb-6 leading-tight">
-              Solusi Teknologi & <br /> Bisnis Terintegrasi
+              Ahli Infrastruktur & <br /> Keamanan Jaringan
             </h1>
             <p className="text-gray-600 text-xl mb-6 leading-relaxed">
-              Dengan pengalaman lebih dari 15 tahun, kami mencetak lulusan yang
-              mampu menjembatani kebutuhan bisnis dan teknologi. Fokus kami pada
-              sistem informasi, manajemen data, dan analisis bisnis modern.
+              Selama lebih dari 15 tahun, kami mencetak profesional yang andal
+              di bidang jaringan komputer, infrastruktur TI, dan keamanan siber.
+              Kurikulum kami dirancang sesuai perkembangan industri teknologi.
             </p>
 
             <div className="flex items-center gap-3 bg-gray-100 p-5 rounded-lg w-fit">

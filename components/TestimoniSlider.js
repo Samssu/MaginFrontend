@@ -11,39 +11,39 @@ const testimonials = [
     name: "Rizky Ananda",
     photo: "/images/pasfoto1.png",
     quote:
-      "Magang ini benar-benar membuka mata saya terhadap dunia kerja. Dari teori di kampus ke praktik nyata, semuanya terasa menantang dan menyenangkan.",
+      "Setelah menyelesaikan magang, saya langsung direkrut sebagai staff IT. Pengalaman magang saya sangat membantu membangun kepercayaan diri dan kemampuan teknis saya.",
   },
   {
     name: "Dewi Lestari",
     photo: "/images/pasfoto2.jpg",
     quote:
-      "Saya berkesempatan terlibat dalam proyek-proyek besar dan belajar langsung dari mentor yang luar biasa. Pengalaman ini sangat berharga sebelum saya lulus.",
+      "Magang ini memberi saya peluang untuk menunjukkan kemampuan saya. Sekarang saya bekerja di perusahaan tempat saya magang, dan saya merasa sangat dihargai.",
   },
   {
     name: "Arif Budiman",
     photo: "/images/pasfoto3.jpg",
     quote:
-      "Di tempat magang ini, saya merasa benar-benar dilibatkan dan dihargai. Setiap hari membawa pengalaman baru yang memperkaya perspektif saya.",
+      "Magang ini membuka pintu karier saya. Saya mendapat penawaran kerja bahkan sebelum lulus karena performa saya selama program magang.",
   },
 ];
 
 const features = [
   {
-    name: "Manajemen Proyek",
+    name: "Rekrut Langsung",
     Icon: KanbanSquare,
-    result: "Berhasil 98%",
+    result: "80% direkrut",
     color: "bg-blue-100 text-blue-700",
   },
   {
-    name: "Manajemen Tim",
+    name: "Mentor Profesional",
     Icon: Users2,
-    result: "Berhasil 95%",
+    result: "Pembimbing aktif",
     color: "bg-green-100 text-green-700",
   },
   {
-    name: "Penyimpanan Aman",
+    name: "Pengalaman Nyata",
     Icon: Database,
-    result: "Berhasil 97%",
+    result: "100% proyek asli",
     color: "bg-purple-100 text-purple-700",
   },
 ];
@@ -70,7 +70,6 @@ export default function TestimonialSection() {
 
   return (
     <section className="relative py-14 px-4 sm:px-8 text-center overflow-hidden">
-      {/* Background Image */}
       {/* Background Icon Besar */}
       <div className="absolute top-10 left-1/2 -translate-x-1/2 -z-10 opacity-20">
         <Image

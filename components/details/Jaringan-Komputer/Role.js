@@ -1,32 +1,32 @@
 "use client";
-import { Database, BarChart3, Users, ClipboardList, Star } from "lucide-react";
+import { Server, ShieldCheck, Users, Cpu, Star } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function FeatureStatsSection() {
   const features = [
     {
-      icon: <Database className="w-8 h-8 text-blue-600" />,
-      title: "Manajemen Data",
+      icon: <Server className="w-8 h-8 text-blue-600" />,
+      title: "Administrasi Jaringan",
       description:
-        "Mahasiswa mempelajari pengelolaan dan analisis data untuk mendukung pengambilan keputusan bisnis.",
+        "Mahasiswa dilatih mengelola dan mengonfigurasi jaringan komputer, termasuk server dan perangkat jaringan.",
     },
     {
-      icon: <BarChart3 className="w-8 h-8 text-blue-600" />,
-      title: "Analisis Sistem",
+      icon: <ShieldCheck className="w-8 h-8 text-blue-600" />,
+      title: "Keamanan Siber",
       description:
-        "Terlibat langsung dalam analisis kebutuhan dan perancangan sistem informasi yang efektif.",
+        "Fokus pada perlindungan data dan jaringan dari ancaman siber melalui berbagai teknik dan tools keamanan.",
+    },
+    {
+      icon: <Cpu className="w-8 h-8 text-blue-600" />,
+      title: "Infrastruktur TI",
+      description:
+        "Mempelajari infrastruktur teknologi informasi untuk mendukung kebutuhan jaringan skala kecil hingga besar.",
     },
     {
       icon: <Users className="w-8 h-8 text-blue-600" />,
-      title: "Kolaborasi Tim",
+      title: "Kerja Tim Teknologi",
       description:
-        "Bekerja sama dalam tim lintas divisi untuk mengembangkan solusi berbasis sistem informasi.",
-    },
-    {
-      icon: <ClipboardList className="w-8 h-8 text-blue-600" />,
-      title: "Dokumentasi Proyek",
-      description:
-        "Meningkatkan kemampuan dokumentasi dan penyusunan laporan proyek secara profesional.",
+        "Berkolaborasi dalam tim teknis untuk membangun, menguji, dan memelihara sistem jaringan yang handal.",
     },
   ];
 
@@ -36,7 +36,7 @@ export default function FeatureStatsSection() {
         {/* Heading */}
         <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-12">
           Keunggulan Program Magang <br className="hidden sm:block" />
-          Sistem Informasi
+          Jaringan Komputer
         </h2>
 
         {/* Features */}
@@ -86,7 +86,7 @@ export default function FeatureStatsSection() {
           >
             <p className="text-3xl font-bold text-black">92%</p>
             <p className="text-sm text-gray-500 mt-1">
-              Peningkatan keterampilan kerja setelah magang.
+              Lulusan bekerja di bidang jaringan & IT support.
             </p>
           </motion.div>
 
@@ -96,9 +96,9 @@ export default function FeatureStatsSection() {
             transition={{ duration: 0.5, delay: 1.2 }}
             viewport={{ once: true }}
           >
-            <p className="text-3xl font-bold text-black">250+</p>
+            <p className="text-3xl font-bold text-black">200+</p>
             <p className="text-sm text-gray-500 mt-1">
-              Mitra industri bidang sistem & informasi bisnis.
+              Mitra industri bidang jaringan dan keamanan TI.
             </p>
           </motion.div>
         </div>

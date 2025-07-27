@@ -51,12 +51,11 @@ export default function HeroSection() {
               </Link>
             </li>
             <li>{">"}</li>
-            <li className="text-gray-800 font-semibold">Sistem Informasi</li>
+            <li className="text-gray-800 font-semibold">Komputer Akuntansi</li>
           </ol>
         </nav>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-          {/* Image + Badge */}
           <motion.div
             className="relative"
             ref={cardRef}
@@ -73,8 +72,8 @@ export default function HeroSection() {
               transition={{ duration: 0.4 }}
             >
               <Image
-                src="/images/sistem-informasi.jpg" // 🔁 Ganti sesuai file kamu
-                alt="Mahasiswa Sistem Informasi"
+                src="/images/komputer-akuntansi.jpg" // 🔁 Gambar baru
+                alt="Komputer Akuntansi"
                 width={600}
                 height={400}
                 className="w-full h-auto object-cover"
@@ -94,7 +93,6 @@ export default function HeroSection() {
             </motion.div>
           </motion.div>
 
-          {/* Text Content */}
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -102,21 +100,22 @@ export default function HeroSection() {
             viewport={{ once: true }}
           >
             <span className="uppercase text-blue-600 font-semibold tracking-wider text-base">
-              Sistem Informasi
+              Komputer Akuntansi
             </span>
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mt-4 mb-6 leading-tight">
-              Solusi Teknologi & <br /> Bisnis Terintegrasi
+              Siap Hadapi Dunia Akuntansi <br /> dengan Teknologi Terkini
             </h1>
             <p className="text-gray-600 text-xl mb-6 leading-relaxed">
-              Dengan pengalaman lebih dari 15 tahun, kami mencetak lulusan yang
-              mampu menjembatani kebutuhan bisnis dan teknologi. Fokus kami pada
-              sistem informasi, manajemen data, dan analisis bisnis modern.
+              Selama lebih dari 15 tahun, kami telah mencetak tenaga profesional
+              yang kompeten di bidang akuntansi dan teknologi. Program ini
+              dirancang untuk menguasai software akuntansi dan sistem informasi
+              keuangan.
             </p>
 
             <div className="flex items-center gap-3 bg-gray-100 p-5 rounded-lg w-fit">
               <Users className="w-6 h-6 text-blue-600" />
               <span className="text-base font-medium text-gray-800">
-                10k+ mahasiswa telah bergabung.
+                8.000+ lulusan sukses di industri.
               </span>
             </div>
           </motion.div>

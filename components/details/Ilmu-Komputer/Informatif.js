@@ -51,7 +51,7 @@ export default function HeroSection() {
               </Link>
             </li>
             <li>{">"}</li>
-            <li className="text-gray-800 font-semibold">Sistem Informasi</li>
+            <li className="text-gray-800 font-semibold">Ilmu Komputer</li>
           </ol>
         </nav>
 
@@ -73,8 +73,8 @@ export default function HeroSection() {
               transition={{ duration: 0.4 }}
             >
               <Image
-                src="/images/sistem-informasi.jpg" // 🔁 Ganti sesuai file kamu
-                alt="Mahasiswa Sistem Informasi"
+                src="/images/ilmu-komputer.jpg" // ✅ Pastikan gambar ini tersedia
+                alt="Ilmu Komputer"
                 width={600}
                 height={400}
                 className="w-full h-auto object-cover"
@@ -89,7 +89,7 @@ export default function HeroSection() {
                 15
               </div>
               <p className="mt-2 text-base text-gray-700 text-center">
-                Tahun pengalaman
+                Years of experience
               </p>
             </motion.div>
           </motion.div>
@@ -102,15 +102,15 @@ export default function HeroSection() {
             viewport={{ once: true }}
           >
             <span className="uppercase text-blue-600 font-semibold tracking-wider text-base">
-              Sistem Informasi
+              Ilmu Komputer
             </span>
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mt-4 mb-6 leading-tight">
-              Solusi Teknologi & <br /> Bisnis Terintegrasi
+              Menjadi Ahli Teknologi <br /> dengan Landasan Ilmiah yang Kuat.
             </h1>
             <p className="text-gray-600 text-xl mb-6 leading-relaxed">
-              Dengan pengalaman lebih dari 15 tahun, kami mencetak lulusan yang
-              mampu menjembatani kebutuhan bisnis dan teknologi. Fokus kami pada
-              sistem informasi, manajemen data, dan analisis bisnis modern.
+              Kami telah membina lebih dari 15 tahun generasi unggul di bidang
+              komputasi dan teknologi informasi. Program ini menggabungkan teori
+              mendalam dan praktik nyata untuk membentuk profesional masa depan.
             </p>
 
             <div className="flex items-center gap-3 bg-gray-100 p-5 rounded-lg w-fit">
