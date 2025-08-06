@@ -43,6 +43,8 @@ export default function TabelRiwayat() {
       const res = await axios.get("http://localhost:5000/api/riwayat", {
         headers: { Authorization: `Bearer ${token}` },
       });
+
+      console.log("Data dari API:", res.data);
       setRiwayat(res.data);
     } catch (err) {
       toast.error("Gagal mengambil data riwayat");
@@ -645,6 +647,7 @@ export default function TabelRiwayat() {
                                     )}
                                   </div>
                                 </div>
+
                                 {/* Ganti bagian pembimbing dengan: */}
                                 <div className="border-t border-gray-200 pt-3 mt-3">
                                   <h5 className="font-medium text-gray-700 mb-2 flex items-center gap-2">
@@ -654,11 +657,8 @@ export default function TabelRiwayat() {
                                   {item.pembimbing ? (
                                     <>
                                       <p className="font-medium">
-                                        {typeof item.pembimbing === "object"
-                                          ? item.pembimbing.nama
-                                          : "Pembimbing (ID: " +
-                                            item.pembimbing +
-                                            ")"}
+                                        {item.pembimbing.nama ||
+                                          `Pembimbing (ID: ${item.pembimbing})`}
                                       </p>
                                       {item.pembimbing.divisi && (
                                         <p className="text-sm text-gray-500 mt-1">

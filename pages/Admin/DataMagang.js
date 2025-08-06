@@ -237,9 +237,7 @@ export default function DataPendaftaran() {
 
   const submitPembimbing = async () => {
     if (!selectedPembimbing) {
-      toast.error("Pilih pembimbing terlebih dahulu", {
-        position: "bottom-right",
-      });
+      toast.error("Pilih pembimbing terlebih dahulu");
       return;
     }
 
@@ -252,10 +250,7 @@ export default function DataPendaftaran() {
       );
       if (pembimbingData.jumlahMahasiswa >= 5) {
         toast.error(
-          "Pembimbing ini sudah mencapai kapasitas maksimal (5 mahasiswa)",
-          {
-            position: "bottom-right",
-          }
+          "Pembimbing ini sudah mencapai kapasitas maksimal (5 mahasiswa)"
         );
         return;
       }
@@ -264,6 +259,7 @@ export default function DataPendaftaran() {
       const pendaftarData = pendaftar.find(
         (p) => p._id === selectedPendaftarId
       );
+
       if (pendaftarData.pembimbing) {
         // Jika sudah ada pembimbing, kurangi jumlah mahasiswa pembimbing sebelumnya
         await axios.patch(
@@ -276,6 +272,7 @@ export default function DataPendaftaran() {
         `http://localhost:5000/api/pendaftaran/${selectedPendaftarId}`,
         {
           pembimbing: selectedPembimbing,
+          status: "disetujui", // Pastikan status disetujui
         }
       );
 
@@ -284,15 +281,13 @@ export default function DataPendaftaran() {
         `http://localhost:5000/api/pembimbing/${selectedPembimbing}/tambah-mahasiswa`
       );
 
-      toast.success("Pembimbing berhasil ditambahkan/diubah", {
-        position: "bottom-right",
-      });
+      toast.success("Pembimbing berhasil ditambahkan/diubah");
       fetchData();
       setShowPembimbingModal(false);
       setSelectedPembimbing("");
     } catch (error) {
       console.error("Error assigning pembimbing:", error);
-      toast.error("Gagal menambahkan pembimbing", { position: "bottom-right" });
+      toast.error("Gagal menambahkan pembimbing");
     } finally {
       setIsLoading(false);
     }

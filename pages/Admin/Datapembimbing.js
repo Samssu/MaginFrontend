@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import Head from "next/head";
 import { useEffect, useState } from "react";
 import AdminLayout from "../../components/layouts/AdminLayouts";
@@ -40,6 +41,25 @@ export default function Pembimbing() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [expandedRows, setExpandedRows] = useState({});
+  const [selectedMahasiswa, setSelectedMahasiswa] = useState(null);
+
+  const handleViewMahasiswaDetail = (mahasiswa) => {
+    setSelectedMahasiswa(mahasiswa);
+  };
+  const [showLogbookModal, setShowLogbookModal] = useState(false);
+  const [showLaporanModal, setShowLaporanModal] = useState(false);
+  const [selectedMahasiswaForReport, setSelectedMahasiswaForReport] =
+    useState(null);
+
+  const handleViewLogbook = (mahasiswa) => {
+    setSelectedMahasiswaForReport(mahasiswa);
+    setShowLogbookModal(true);
+  };
+
+  const handleViewLaporan = (mahasiswa) => {
+    setSelectedMahasiswaForReport(mahasiswa);
+    setShowLaporanModal(true);
+  };
 
   useEffect(() => {
     fetchPembimbing();
@@ -74,13 +94,23 @@ export default function Pembimbing() {
   const fetchMahasiswa = async (pembimbingId) => {
     try {
       setIsLoading(true);
+      console.log("Fetching mahasiswa for pembimbing:", pembimbingId);
+
       const res = await axios.get(
         `http://localhost:5000/api/pembimbing/${pembimbingId}/mahasiswa`
       );
+
+      console.log("Received data:", res.data);
       setMahasiswaBimbingan(res.data);
     } catch (error) {
-      console.error("Error fetching mahasiswa bimbingan:", error);
-      toast.error("Gagal memuat data mahasiswa bimbingan");
+      console.error("Error details:", {
+        message: error.message,
+        response: error.response?.data,
+        config: error.config,
+      });
+      toast.error(
+        error.response?.data?.message || "Gagal memuat data mahasiswa"
+      );
       setMahasiswaBimbingan([]);
     } finally {
       setIsLoading(false);
@@ -171,7 +201,6 @@ export default function Pembimbing() {
       <Head>
         <title>Data Pembimbing | Kominfo Palembang</title>
       </Head>
-
       {/* Header Section */}
       <div className="mb-8">
         <h1 className="text-2xl md:text-3xl font-bold text-gray-800 flex items-center gap-2">
@@ -182,7 +211,6 @@ export default function Pembimbing() {
           Kelola data pembimbing magang di Kominfo Palembang
         </p>
       </div>
-
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <StatCard
@@ -210,7 +238,6 @@ export default function Pembimbing() {
           color="yellow"
         />
       </div>
-
       {/* Action Bar */}
       <div className="flex justify-between items-center mb-6">
         <div className="relative w-full max-w-xs">
@@ -243,7 +270,6 @@ export default function Pembimbing() {
           <span>Tambah Pembimbing</span>
         </button>
       </div>
-
       {/* Data Table */}
       <div className="bg-white rounded-xl shadow overflow-hidden">
         <div className="overflow-x-auto">
@@ -393,6 +419,12 @@ export default function Pembimbing() {
                                         Nama
                                       </th>
                                       <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Email
+                                      </th>
+                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Telepon
+                                      </th>
+                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Institusi
                                       </th>
                                       <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -404,13 +436,29 @@ export default function Pembimbing() {
                                       <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Periode
                                       </th>
+                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Aksi
+                                      </th>
                                     </tr>
                                   </thead>
                                   <tbody className="bg-white divide-y divide-gray-200">
                                     {mahasiswaBimbingan.map((mhs) => (
                                       <tr key={mhs._id}>
                                         <td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
-                                          {mhs.nama}
+                                          <button
+                                            className="text-blue-600 hover:underline"
+                                            onClick={() =>
+                                              handleViewMahasiswaDetail(mhs)
+                                            }
+                                          >
+                                            {mhs.nama}
+                                          </button>
+                                        </td>
+                                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
+                                          {mhs.email || "-"}
+                                        </td>
+                                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
+                                          {mhs.telepon || "-"}
                                         </td>
                                         <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
                                           {mhs.institusi}
@@ -423,10 +471,6 @@ export default function Pembimbing() {
                                             className={`px-2 py-1 text-xs font-semibold rounded-full ${
                                               mhs.status === "disetujui"
                                                 ? "bg-green-100 text-green-800"
-                                                : mhs.status === "ditolak"
-                                                ? "bg-red-100 text-red-800"
-                                                : mhs.status === "perbaiki"
-                                                ? "bg-blue-100 text-blue-800"
                                                 : "bg-yellow-100 text-yellow-800"
                                             }`}
                                           >
@@ -441,6 +485,44 @@ export default function Pembimbing() {
                                                 mhs.selesai
                                               ).toLocaleDateString()}`
                                             : "Belum ditentukan"}
+                                        </td>
+                                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500 flex gap-2">
+                                          {/* Tombol Detail */}
+                                          <button
+                                            className="text-blue-600 hover:text-blue-800"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleViewMahasiswaDetail(mhs);
+                                            }}
+                                          >
+                                            Detail
+                                          </button>
+
+                                          {/* Tombol Logbook dengan Link */}
+                                          <Link
+                                            href={`/admin/DataLogbook?id=${
+                                              mhs._id
+                                            }&nama=${encodeURIComponent(
+                                              mhs.nama
+                                            )}`}
+                                            className="text-green-600 hover:text-green-800"
+                                            onClick={(e) => e.stopPropagation()}
+                                          >
+                                            Logbook
+                                          </Link>
+
+                                          {/* Tombol Laporan dengan Link */}
+                                          <Link
+                                            href={`/admin/DataLaporanAkhir?id=${
+                                              mhs._id
+                                            }&nama=${encodeURIComponent(
+                                              mhs.nama
+                                            )}`}
+                                            className="text-purple-600 hover:text-purple-800"
+                                            onClick={(e) => e.stopPropagation()}
+                                          >
+                                            Laporan
+                                          </Link>
                                         </td>
                                       </tr>
                                     ))}
@@ -466,6 +548,143 @@ export default function Pembimbing() {
         </div>
       </div>
 
+      {selectedMahasiswa && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold text-gray-800">
+                  Detail Mahasiswa Bimbingan
+                </h3>
+                <button
+                  onClick={() => setSelectedMahasiswa(null)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  &times;
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Data Pribadi */}
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-500">
+                      Nama Lengkap
+                    </h4>
+                    <p className="text-gray-800 font-medium">
+                      {selectedMahasiswa.nama}
+                    </p>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-500">Email</h4>
+                    <p className="text-gray-800">
+                      {selectedMahasiswa.email || "-"}
+                    </p>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-500">
+                      Nomor Telepon
+                    </h4>
+                    <p className="text-gray-800">
+                      {selectedMahasiswa.telepon || "-"}
+                    </p>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-500">
+                      Alamat
+                    </h4>
+                    <p className="text-gray-800 whitespace-pre-line">
+                      {selectedMahasiswa.alamat || "-"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Data Akademik */}
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-500">
+                      Institusi
+                    </h4>
+                    <p className="text-gray-800">
+                      {selectedMahasiswa.institusi}
+                    </p>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-500">
+                      Program Studi
+                    </h4>
+                    <p className="text-gray-800">{selectedMahasiswa.prodi}</p>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-500">
+                      Semester
+                    </h4>
+                    <p className="text-gray-800">
+                      {selectedMahasiswa.semester}
+                    </p>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-500">
+                      Status
+                    </h4>
+                    <span
+                      className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                        selectedMahasiswa.status === "disetujui"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-yellow-100 text-yellow-800"
+                      }`}
+                    >
+                      {selectedMahasiswa.status || "pending"}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Data Magang */}
+                <div className="md:col-span-2 space-y-4">
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-500">
+                      Periode Magang
+                    </h4>
+                    <p className="text-gray-800">
+                      {selectedMahasiswa.mulai && selectedMahasiswa.selesai
+                        ? `${new Date(
+                            selectedMahasiswa.mulai
+                          ).toLocaleDateString()} - ${new Date(
+                            selectedMahasiswa.selesai
+                          ).toLocaleDateString()}`
+                        : "Belum ditentukan"}
+                    </p>
+                  </div>
+                  {selectedMahasiswa.pembimbing && (
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-500">
+                        Pembimbing
+                      </h4>
+                      <div className="mt-1 p-3 bg-gray-50 rounded">
+                        <p className="font-medium">
+                          {selectedMahasiswa.pembimbing.nama}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {selectedMahasiswa.pembimbing.divisi}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-6 flex justify-end">
+                <button
+                  onClick={() => setSelectedMahasiswa(null)}
+                  className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
+                >
+                  Tutup
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Add Pembimbing Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
@@ -576,7 +795,6 @@ export default function Pembimbing() {
   );
 }
 
-// StatCard Component
 // Di dalam komponen StatCard (tambahkan jika belum ada)
 const StatCard = ({ icon, title, value, color }) => {
   const colorClasses = {

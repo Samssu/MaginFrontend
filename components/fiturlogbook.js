@@ -15,7 +15,7 @@ import Link from "next/link";
 import { jsPDF } from "jspdf";
 
 // Correct way to import jspdf-autotable
-const autoTable = require("jspdf-autotable");
+let autoTable = require("jspdf-autotable");
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
@@ -85,7 +85,22 @@ export default function Logbook({
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      setUserData(response.data);
+
+      // Jika ada pembimbingId, fetch data pembimbing
+      if (response.data.pembimbingId) {
+        const pembimbingRes = await axios.get(
+          `${API_BASE_URL}/api/pembimbing/${response.data.pembimbingId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        setUserData({
+          ...response.data,
+          pembimbing: pembimbingRes.data,
+        });
+      } else {
+        setUserData(response.data);
+      }
     } catch (error) {
       console.error("Error fetching user data:", error);
     }
@@ -149,100 +164,99 @@ export default function Logbook({
     try {
       setPdfGenerating(true);
 
-      // Initialize jsPDF
-      const doc = new jsPDF();
+      // Import dinamis jsPDF dan autoTable
+      const { jsPDF } = await import("jspdf");
+      const autoTable = (await import("jspdf-autotable")).default;
 
-      // Attach autoTable to the jsPDF instance
-      // This is the key fix - we need to ensure autoTable is properly attached
-      if (typeof autoTable === "function") {
-        // This is the correct way to use autoTable
-        doc.autoTable = autoTable;
-      } else {
-        throw new Error("autoTable is not properly initialized");
-      }
+      // Inisialisasi dokumen baru
+      const doc = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      });
 
-      // Fetch user and pembimbing data
-      const token = localStorage.getItem("token");
-      const [userRes, pembimbingRes] = await Promise.all([
-        axios.get(`${API_BASE_URL}/api/pendaftaran/${userId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        userData?.pembimbingId
-          ? axios.get(`${API_BASE_URL}/api/pembimbing/${userData.pembimbingId}`)
-          : Promise.resolve(null),
-      ]);
-
-      const user = userRes.data;
-      const pembimbing = pembimbingRes?.data || null;
-
-      // Add header
-      doc.setFontSize(18);
-      doc.setTextColor(40);
-      doc.text("LOGBOOK MAGANG", 105, 15, { align: "center" });
-
-      // User information
+      // Set font default
+      doc.setFont("helvetica");
       doc.setFontSize(12);
-      doc.text(`Nama: ${user?.nama || "-"}`, 14, 25);
-      doc.text(`Institusi: ${user?.institusi || "-"}`, 14, 32);
-      doc.text(`Divisi: ${user?.divisi || "-"}`, 14, 39);
-      doc.text(`Pembimbing: ${pembimbing?.nama || "-"}`, 14, 46);
+
+      // Header dokumen
+      doc.setFontSize(16);
+      doc.setTextColor(40);
+      doc.text("LOGBOOK MAGANG", 105, 20, { align: "center" });
+
+      // Informasi pengguna
+      doc.setFontSize(12);
+      const userInfoY = 30;
+      doc.text(`Nama: ${userData?.nama || "-"}`, 20, userInfoY);
+      doc.text(`Institusi: ${userData?.institusi || "-"}`, 20, userInfoY + 7);
+      doc.text(`Divisi: ${userData?.divisi || "-"}`, 20, userInfoY + 14);
+      doc.text(
+        `Pembimbing: ${userData?.pembimbing?.nama || "-"}`,
+        20,
+        userInfoY + 21
+      );
       doc.text(
         `Periode: ${formatDate(periodeMulai)} - ${formatDate(periodeSelesai)}`,
-        14,
-        53
+        20,
+        userInfoY + 28
       );
 
-      // Prepare table data
+      // Header tabel
       const headers = [
         ["No", "Tanggal", "Kegiatan", "Hasil", "Kendala", "Status"],
       ];
 
-      const data = logs.map((entry, index) => [
+      // Data tabel
+      const tableData = logs.map((log, index) => [
         index + 1,
-        formatDate(entry.tanggal || entry.createdAt),
-        entry.kegiatan || entry.content || "-",
-        entry.hasil || "-",
-        entry.kendala || "-",
-        entry.status || "-",
+        formatDate(log.tanggal || log.createdAt),
+        log.kegiatan || log.content || "-",
+        log.hasil || "-",
+        log.kendala || "-",
+        log.status || "-",
       ]);
 
-      // Add table - this is now the correct way to call autoTable
-      doc.autoTable({
+      // Generate tabel
+      autoTable(doc, {
         head: headers,
-        body: data,
-        startY: 60,
+        body: tableData,
+        startY: userInfoY + 35,
+        margin: { horizontal: 20 },
         styles: {
           fontSize: 10,
           cellPadding: 3,
           valign: "middle",
+          halign: "left",
+          font: "helvetica",
         },
         headStyles: {
           fillColor: [41, 128, 185],
           textColor: 255,
           fontStyle: "bold",
+          halign: "center",
         },
         alternateRowStyles: {
           fillColor: [245, 245, 245],
         },
         columnStyles: {
-          0: { cellWidth: 10 },
+          0: { cellWidth: 10, halign: "center" },
           1: { cellWidth: 25 },
           2: { cellWidth: 45 },
           3: { cellWidth: 45 },
           4: { cellWidth: 35 },
-          5: { cellWidth: 20 },
+          5: { cellWidth: 20, halign: "center" },
+        },
+        didDrawPage: function (data) {
+          // Footer dengan nomor halaman
+          const pageCount = doc.internal.getNumberOfPages();
+          doc.setFontSize(10);
+          doc.text(
+            `Halaman ${data.pageNumber} dari ${pageCount}`,
+            data.settings.margin.left,
+            doc.internal.pageSize.height - 10
+          );
         },
       });
-
-      // Add footer with page numbers
-      const pageCount = doc.internal.getNumberOfPages();
-      for (let i = 1; i <= pageCount; i++) {
-        doc.setPage(i);
-        doc.setFontSize(10);
-        doc.text(`Halaman ${i} dari ${pageCount}`, 105, 285, {
-          align: "center",
-        });
-      }
 
       return doc;
     } catch (error) {
@@ -260,13 +274,29 @@ export default function Logbook({
     }
 
     try {
+      // Pastikan userData sudah terload
+      if (!userData) {
+        await fetchUserData();
+      }
+
       const pdf = await generatePDF();
-      pdf.save(`Logbook_${userData?.nama || "Magang"}.pdf`);
+      const fileName = `Logbook_${
+        userData?.nama?.replace(/\s+/g, "_") || "Magang"
+      }.pdf`;
+      pdf.save(fileName);
       toast.success("Logbook berhasil diunduh");
     } catch (error) {
-      console.error("Error generating PDF:", error);
-      toast.error("Gagal mengunduh logbook");
+      console.error("Error downloading PDF:", error);
+      toast.error("Gagal mengunduh logbook. Silakan coba lagi.");
     }
+  };
+
+  const handleDownload = (report) => {
+    if (!report) {
+      toast.info("Tidak ada file laporan");
+      return;
+    }
+    window.open(`${API_BASE_URL}${report}`, "_blank");
   };
 
   const handleDelete = async (id) => {
@@ -281,14 +311,6 @@ export default function Logbook({
     } catch {
       toast.error("Gagal menghapus logbook");
     }
-  };
-
-  const handleDownload = (report) => {
-    if (!report) {
-      toast.info("Tidak ada file laporan");
-      return;
-    }
-    window.open(`${API_BASE_URL}${report}`, "_blank");
   };
 
   return (
