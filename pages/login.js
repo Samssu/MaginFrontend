@@ -5,19 +5,22 @@ import Link from "next/link";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import jwt from "jsonwebtoken";
-import { toast } from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 export default function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [remember, setRemember] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
+
     try {
-      // Coba login sebagai user biasa dulu
+      let data;
       let res = await fetch("http://localhost:5000/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -25,19 +28,13 @@ export default function Login() {
         credentials: "include",
       });
 
-      let data;
-
-      // Handle response yang bukan JSON (misal error 404 HTML)
-      const contentType = res.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
+      if (
+        res.ok &&
+        res.headers.get("content-type")?.includes("application/json")
+      ) {
         data = await res.json();
       } else {
-        const text = await res.text();
-        throw new Error(text || "Login gagal");
-      }
-
-      if (!res.ok) {
-        // Jika login sebagai user gagal, coba sebagai pembimbing
+        // Jika login sebagai user gagal, coba pembimbing
         res = await fetch("http://localhost:5000/api/pembimbing/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -45,26 +42,33 @@ export default function Login() {
           credentials: "include",
         });
 
-        // Handle response pembimbing
-        if (res.headers.get("content-type")?.includes("application/json")) {
+        if (
+          res.ok &&
+          res.headers.get("content-type")?.includes("application/json")
+        ) {
           data = await res.json();
         } else {
-          const text = await res.text();
-          throw new Error(text || "Login pembimbing gagal");
-        }
-
-        if (!res.ok) {
-          throw new Error(data.message || "Login gagal");
+          // Jika dua-duanya gagal, tampilkan pesan sekali saja
+          toast.error("Akun tidak terdaftar", {
+            position: "bottom-right",
+            autoClose: 3000,
+          });
+          return;
         }
       }
 
       const { token } = data;
-      localStorage.setItem("token", token);
+      if (!token) {
+        toast.error("Akun tidak terdaftar", {
+          position: "bottom-right",
+          autoClose: 3000,
+        });
+        return;
+      }
 
-      // Decode token untuk mendapatkan data user
+      localStorage.setItem("token", token);
       const decoded = jwt.decode(token);
 
-      // Simpan data user ke localStorage
       const userData = {
         name: decoded?.nama || decoded?.name,
         email: decoded?.email,
@@ -73,19 +77,30 @@ export default function Login() {
       };
       localStorage.setItem("user", JSON.stringify(userData));
 
-      // Redirect berdasarkan role
+      let welcomeMessage = "Berhasil login!";
       if (decoded?.role === "admin") {
+        welcomeMessage = "Selamat datang, Admin!";
         router.push("/Admin/dashboard");
       } else if (decoded?.role === "pembimbing") {
+        welcomeMessage = "Selamat datang, Pembimbing!";
         router.push("/pembimbing/dashboard");
       } else {
+        welcomeMessage = "Selamat datang!";
         router.push("/user/dashboard");
       }
 
-      toast.success("Login berhasil!");
+      toast.success(welcomeMessage, {
+        position: "bottom-right",
+        autoClose: 3000,
+      });
     } catch (err) {
       console.error("Login error:", err);
-      toast.error(err.message || "Terjadi kesalahan saat login");
+      toast.error("Terjadi kesalahan saat login", {
+        position: "bottom-right",
+        autoClose: 3000,
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -95,67 +110,123 @@ export default function Login() {
         <title>Login | Pendaftaran Magang Kominfo</title>
       </Head>
 
-      <div className="relative min-h-screen grid grid-cols-1 md:grid-cols-2">
+      <ToastContainer
+        position="bottom-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
+
+      <div className="min-h-screen grid grid-cols-1 md:grid-cols-2 bg-gradient-to-br from-blue-50 to-white">
+        {/* Left Side - Image */}
         <div className="hidden md:block relative">
-          <div className="absolute inset-0 z-0">
-            <img
-              src="/images/laptop.jpg"
-              alt="Gambar Login"
-              className="w-full h-full object-cover"
-            />
-          </div>
+          <div className="absolute inset-0 bg-gradient-to-t from-blue-900/30 to-blue-900/10 z-10"></div>
+          <img
+            src="/images/01.png "
+            alt="Login Background"
+            className="w-full h-full object-cover"
+          />
         </div>
 
-        <div className="flex items-center justify-center px-8 py-12 bg-white relative z-10">
-          <div className="w-full max-w-md">
-            <button
-              onClick={() => (window.location.href = "/")}
-              className="mb-4 text-sm text-black-600 hover:underline flex items-center gap-2"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+        {/* Right Side - Form */}
+        <div className="flex items-center justify-center p-6">
+          <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-8 space-y-6 animate-fade-in">
+            <div className="flex justify-between items-center">
+              <button
+                onClick={() => router.push("/")}
+                className="flex items-center gap-1 text-blue-600 hover:text-blue-700 transition-colors"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 19l-7-7 7-7"
-                />
-              </svg>
-              Kembali
-            </button>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                  />
+                </svg>
+                <span className="text-sm">Kembali </span>
+              </button>
+            </div>
 
-            <h1 className="text-4xl font-bold mb-8 text-gray-900 text-left">
-              Masuk
-            </h1>
+            <div className="text-center">
+              <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-8 w-8 text-blue-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
+                </svg>
+              </div>
+              <h1 className="text-3xl font-bold text-gray-800">
+                Selamat Datang
+              </h1>
+              <p className="text-gray-500 mt-2">
+                Silakan masukan akun anda untuk masuk
+              </p>
+            </div>
 
             <form onSubmit={handleLogin} className="space-y-5">
               <div>
-                <label className="block text-sm text-gray-700 mb-1">
-                  Alamat Email
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Email Address
                 </label>
-                <input
-                  type="email"
-                  placeholder="Masukkan email anda"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  required
-                />
+                <div className="relative">
+                  <input
+                    type="email"
+                    placeholder="Masukan Email"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    onChange={(e) =>
+                      setForm({ ...form, email: e.target.value })
+                    }
+                    required
+                  />
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5 text-gray-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                      />
+                    </svg>
+                  </div>
+                </div>
               </div>
 
               <div>
-                <label className="block text-sm text-gray-700 mb-1">
-                  Kata Sandi
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Password
                 </label>
                 <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
-                    placeholder="Masukkan kata sandi"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
+                    placeholder="••••••••"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pr-12"
                     onChange={(e) =>
                       setForm({ ...form, password: e.target.value })
                     }
@@ -164,13 +235,12 @@ export default function Login() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-blue-600"
-                    tabIndex={-1}
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-blue-600"
                   >
                     {showPassword ? (
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        className="w-5 h-5"
+                        className="h-5 w-5"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -191,7 +261,7 @@ export default function Login() {
                     ) : (
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        className="w-5 h-5"
+                        className="h-5 w-5"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -212,43 +282,74 @@ export default function Login() {
                     )}
                   </button>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  Minimal 8 karakter, gunakan kombinasi huruf, angka, dan
-                  simbol.
+                <p className="text-xs text-gray-500 mt-2">
+                  Minimal 8 karakter dengan kombinasi huruf, angka, dan simbol
                 </p>
               </div>
 
-              <div className="flex items-center justify-between text-sm">
-                <label className="flex items-center gap-2 text-gray-700">
+              <div className="flex items-center justify-between">
+                <label className="flex items-center space-x-2 text-sm text-gray-600">
                   <input
                     type="checkbox"
                     checked={remember}
                     onChange={() => setRemember(!remember)}
-                    className="accent-blue-600"
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   />
-                  Ingat saya
+                  <span>Ingatkan Saya</span>
                 </label>
 
                 <Link
                   href="/forgot-password"
-                  className="text-blue-600 hover:underline"
+                  className="text-sm text-blue-600 hover:underline"
                 >
-                  Lupa Kata Sandi?
+                  Lupa Password?
                 </Link>
               </div>
 
               <button
                 type="submit"
-                className="w-full py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+                disabled={isLoading}
+                className={`w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-blue-500 text-white font-medium rounded-lg hover:from-blue-700 hover:to-blue-600 transition-all shadow-md ${
+                  isLoading ? "opacity-75 cursor-not-allowed" : ""
+                }`}
               >
-                Masuk
+                {isLoading ? (
+                  <span className="flex items-center justify-center">
+                    <svg
+                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    Masuk...
+                  </span>
+                ) : (
+                  "Sign In"
+                )}
               </button>
             </form>
 
-            <div className="mt-8 text-sm text-center">
-              Belum punya akun?{" "}
-              <Link href="/register" className="text-blue-600 hover:underline">
-                Daftar di sini
+            <div className="text-center text-sm text-gray-500 pt-4 border-t border-gray-200">
+              Tidak Punya Akun?{" "}
+              <Link
+                href="/register"
+                className="text-blue-600 font-medium hover:underline"
+              >
+                Buat Akun
               </Link>
             </div>
           </div>

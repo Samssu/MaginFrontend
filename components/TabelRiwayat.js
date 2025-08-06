@@ -146,6 +146,8 @@ export default function TabelRiwayat() {
 
     try {
       const token = localStorage.getItem("token");
+      console.log("Mencoba mengunduh:", filename); // Debug log
+
       const response = await axios.get(
         `http://localhost:5000/api/download/${filename}`,
         {
@@ -154,7 +156,8 @@ export default function TabelRiwayat() {
         }
       );
 
-      // Cek jika response error
+      console.log("Response download:", response); // Debug log
+
       if (response.status !== 200) {
         throw new Error("File tidak ditemukan di server");
       }
@@ -166,11 +169,14 @@ export default function TabelRiwayat() {
       document.body.appendChild(link);
       link.click();
       link.remove();
+
+      // Bebaskan memori
+      setTimeout(() => window.URL.revokeObjectURL(url), 100);
     } catch (error) {
-      console.error("Download error:", error);
+      console.error("Download error details:", error);
       toast.error(
         error.response?.data?.message ||
-          "Gagal mengunduh file. File mungkin tidak ada di server."
+          `Gagal mengunduh file. ${error.message}`
       );
     }
   };
@@ -388,7 +394,7 @@ export default function TabelRiwayat() {
                               : "border-gray-300 text-gray-500 bg-gray-100 cursor-not-allowed"
                           }`}
                           disabled={
-                            item.status !== "disetujui" || !item.suratBalasan
+                            !(item.status === "disetujui" && item.suratBalasan)
                           }
                         >
                           <Download className="mr-1" size={14} />
@@ -723,17 +729,7 @@ export default function TabelRiwayat() {
                                       diterima. Silakan unduh surat balasan
                                       resmi di atas.
                                     </p>
-                                    {item.suratBalasan && (
-                                      <button
-                                        onClick={() =>
-                                          handleDownload(item.suratBalasan)
-                                        }
-                                        className="mt-2 inline-flex items-center px-3 py-1 border border-green-300 text-xs font-medium rounded-md text-green-700 bg-white hover:bg-green-50"
-                                      >
-                                        <Download className="mr-1" size={12} />
-                                        Unduh Surat Balasan
-                                      </button>
-                                    )}
+
                                     {!item.laporanAkhir && (
                                       <div className="mt-4">
                                         <button

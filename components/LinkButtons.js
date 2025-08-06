@@ -48,6 +48,7 @@ export default function BerandaCards() {
   const [statusMagang, setStatusMagang] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [hasNewNotification, setHasNewNotification] = useState(false);
+  const [hasNewPendaftaran, setHasNewPendaftaran] = useState(false);
   const LogbookIcon = cards[2].icon;
 
   useEffect(() => {
@@ -55,8 +56,16 @@ export default function BerandaCards() {
     if (token) {
       setIsLoggedIn(true);
       fetchStatusMagang();
+      checkFirstTimePendaftaran();
     }
   }, []);
+
+  const checkFirstTimePendaftaran = () => {
+    const hasAccessedBefore = localStorage.getItem("hasAccessedPendaftaran");
+    if (!hasAccessedBefore) {
+      setHasNewPendaftaran(true);
+    }
+  };
 
   const fetchStatusMagang = async () => {
     try {
@@ -138,6 +147,11 @@ export default function BerandaCards() {
     }
   };
 
+  const handlePendaftaranClick = () => {
+    localStorage.setItem("hasAccessedPendaftaran", "true");
+    setHasNewPendaftaran(false);
+  };
+
   return (
     <section className="px-6 py-12 max-w-6xl mx-auto">
       <motion.h1
@@ -151,7 +165,8 @@ export default function BerandaCards() {
 
       {/* Pemberitahuan & Pendaftaran */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {cards.slice(0, 2).map((card, idx) => {
+        {/* Pemberitahuan Card */}
+        {cards.slice(0, 1).map((card, idx) => {
           const Icon = card.icon;
           return (
             <motion.div
@@ -179,6 +194,48 @@ export default function BerandaCards() {
             </motion.div>
           );
         })}
+
+        {/* Pendaftaran Card */}
+        <motion.div
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
+          initial={{ opacity: 0, x: -30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.1, duration: 0.5 }}
+          className="relative"
+        >
+          <Link
+            href="/user/pendaftaran"
+            onClick={handlePendaftaranClick}
+            className="block bg-white rounded-2xl shadow-md hover:shadow-xl transition duration-300 p-6 flex items-center gap-5"
+          >
+            {/* Notification Badge */}
+            {hasNewPendaftaran && (
+              <>
+                <span className="absolute -top-2 -left-2 h-4 w-4 rounded-full bg-red-500 animate-ping"></span>
+                <span className="absolute -top-2 -left-2 h-4 w-4 rounded-full bg-red-500"></span>
+              </>
+            )}
+
+            <div className="p-4 rounded-xl bg-blue-100 text-blue-600">
+              <ClipboardList size={32} />
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-1">
+                Pendaftaran
+              </h3>
+              <p className="text-gray-600 text-sm">
+                Lengkapi formulir pendaftaran magang secara online dan ikuti
+                proses verifikasi.
+              </p>
+              {hasNewPendaftaran && (
+                <p className="text-xs text-red-500 mt-2">
+                  *Silakan lengkapi formulir pendaftaran
+                </p>
+              )}
+            </div>
+          </Link>
+        </motion.div>
       </div>
 
       {/* Logbook */}

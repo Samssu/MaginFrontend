@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Head from "next/head";
 
 export default function VerifyOtp() {
   const [otpDigits, setOtpDigits] = useState(["", "", "", "", "", ""]);
@@ -84,74 +85,139 @@ export default function VerifyOtp() {
   };
 
   return (
-    <div className="min-h-screen grid grid-cols-1 md:grid-cols-2 bg-white">
-      {/* Gambar Kiri */}
-      <div className="hidden md:block h-full w-full">
-        <img
-          src="/images/pegangbuku.jpg"
-          alt="Verify OTP"
-          className="w-full h-full object-cover"
-        />
-      </div>
+    <>
+      <Head>
+        <title>Verifikasi OTP</title>
+      </Head>
 
-      {/* Form Verifikasi */}
-      <div className="flex items-center justify-center px-6 py-10 bg-white">
-        <div className="w-full max-w-md space-y-6 border rounded-xl p-6 shadow-md text-black animate-fade-in relative">
-          {/* Tombol Kembali (SVG Button) */}
-          <button
-            type="button"
-            onClick={() => router.push("/")}
-            className="absolute top-4 left-4 flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-blue-600 hover:scale-105 transition duration-200"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              stroke="currentColor"
-              className="w-5 h-5"
+      <div className="min-h-screen grid grid-cols-1 md:grid-cols-2 bg-gradient-to-br from-blue-50 to-white">
+        {/* Left Image with Overlay */}
+        <div className="hidden md:block relative h-full w-full">
+          <div className="absolute inset-0 bg-blue-900/10 z-10"></div>
+          <img
+            src="/images/pegangbuku.jpg"
+            alt="Verify OTP"
+            className="w-full h-full object-cover"
+          />
+        </div>
+
+        {/* Verification Form */}
+        <div className="flex items-center justify-center px-6 py-10">
+          <div className="w-full max-w-md space-y-6 border border-gray-100 rounded-xl p-8 shadow-lg bg-white animate-fade-in relative">
+            {/* Back Button */}
+            <button
+              type="button"
+              onClick={() => router.push("/")}
+              className="absolute top-6 left-6 flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors duration-200 group"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-            Kembali
-          </button>
-
-          <h1 className="text-3xl font-bold text-center">Verifikasi OTP</h1>
-
-          <form onSubmit={handleSubmit} className="space-y-6 mt-4">
-            <div className="flex justify-center gap-2">
-              {otpDigits.map((digit, index) => (
-                <input
-                  key={index}
-                  ref={(el) => (inputRefs.current[index] = el)}
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={1}
-                  className="w-12 h-12 text-center text-xl border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  value={digit}
-                  onChange={(e) => handleChange(index, e.target.value)}
-                  onKeyDown={(e) => handleKeyDown(index, e)}
-                  autoFocus={index === 0}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                className="w-5 h-5 group-hover:-translate-x-1 transition-transform duration-200"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M15 19l-7-7 7-7"
                 />
-              ))}
+              </svg>
+              Kembali
+            </button>
+
+            {/* Logo/Icon */}
+            <div className="flex justify-center">
+              <div className="p-3 bg-blue-100 rounded-full">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-8 w-8 text-blue-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                  />
+                </svg>
+              </div>
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className={`w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 ${
-                loading ? "opacity-70 cursor-not-allowed" : ""
-              }`}
-            >
-              {loading ? "Memverifikasi..." : "Verifikasi OTP"}
-            </button>
-          </form>
+            <h1 className="text-3xl font-bold text-center text-gray-800">
+              Verifikasi OTP
+            </h1>
+            <p className="text-center text-gray-500">
+              Masukkan 6 digit kode yang dikirim ke email Anda
+            </p>
+
+            <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+              <div className="flex justify-center gap-3">
+                {otpDigits.map((digit, index) => (
+                  <input
+                    key={index}
+                    ref={(el) => (inputRefs.current[index] = el)}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={1}
+                    className="w-14 h-14 text-center text-2xl font-semibold border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-200 transition-all duration-200"
+                    value={digit}
+                    onChange={(e) => handleChange(index, e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(index, e)}
+                    autoFocus={index === 0}
+                  />
+                ))}
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className={`w-full bg-gradient-to-r from-blue-600 to-blue-500 text-white py-3 rounded-lg hover:from-blue-700 hover:to-blue-600 transition-all duration-300 shadow-md ${
+                  loading ? "opacity-80 cursor-not-allowed" : ""
+                }`}
+              >
+                {loading ? (
+                  <span className="flex items-center justify-center">
+                    <svg
+                      className="animate-spin h-5 w-5 mr-3 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    Memverifikasi...
+                  </span>
+                ) : (
+                  "Verifikasi OTP"
+                )}
+              </button>
+            </form>
+
+            <div className="text-center text-sm text-gray-500">
+              Tidak menerima kode?{" "}
+              <button className="text-blue-600 font-medium hover:text-blue-700">
+                Kirim ulang
+              </button>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

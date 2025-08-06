@@ -2,7 +2,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import Head from "next/head";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import { motion } from "framer-motion";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -13,13 +13,20 @@ export default function Register() {
     password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
 
     if (form.password.length < 8) {
-      toast.error("Password minimal 8 karakter.");
+      toast.error("Password minimal 8 karakter.", {
+        position: "bottom-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+      });
+      setIsLoading(false);
       return;
     }
 
@@ -35,9 +42,12 @@ export default function Register() {
       const data = await res.json();
 
       if (data.token) {
-        toast.success("OTP telah dikirim ke email Anda.");
+        toast.success("OTP telah dikirim ke email Anda!", {
+          position: "bottom-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+        });
 
-        // Simpan data pengguna di localStorage setelah registrasi
         const userData = {
           name: form.name,
           email: form.email,
@@ -53,97 +63,181 @@ export default function Register() {
           },
         });
       } else {
-        toast.error(data.message || "Registrasi gagal.");
+        toast.error(data.message || "Registrasi gagal.", {
+          position: "bottom-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+        });
       }
     } catch (error) {
       console.error("Register error:", error);
-      toast.error("Terjadi kesalahan. Silakan coba lagi.");
+      toast.error("Terjadi kesalahan. Silakan coba lagi.", {
+        position: "bottom-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <>
       <Head>
-        <title>Register | Pendaftaran Magang Kominfo</title>
+        <title>Daftar | Pendaftaran Magang Kominfo</title>
       </Head>
 
-      <div className="relative min-h-screen grid grid-cols-1 md:grid-cols-2">
-        <div className="hidden md:block relative">
-          <div className="absolute inset-0 z-0">
-            <img
-              src="/images/pegangbuku.jpg"
-              alt="Register"
-              className="w-full h-full object-cover"
-            />
-          </div>
-        </div>
+      <ToastContainer
+        position="bottom-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
 
-        <div className="flex items-center justify-center px-8 py-12 bg-white relative z-10">
+      <div className="min-h-screen flex bg-gradient-to-br from-blue-50 to-white">
+        {/* Bagian Gambar - Tetap Diam */}
+        <div
+          className="hidden md:block fixed top-0 left-0 w-1/2 h-full z-0"
+          style={{
+            backgroundImage: "url('/images/pegangbuku.jpg')",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        ></div>
+
+        {/* Bagian Form */}
+        <div className="w-full md:w-1/2 ml-auto min-h-screen flex items-center justify-center p-6">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="w-full max-w-md"
+            className="w-full max-w-md bg-white rounded-xl shadow-lg p-8 space-y-6"
           >
-            <button
-              onClick={() => router.push("/")}
-              className="mb-4 text-sm text-black-600 hover:underline flex items-center gap-2"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+            <div className="flex justify-between items-center">
+              <button
+                onClick={() => router.push("/")}
+                className="flex items-center gap-1 text-blue-600 hover:text-blue-700 transition-colors text-sm"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 19l-7-7 7-7"
-                />
-              </svg>
-              Kembali
-            </button>
-            <h1 className="text-4xl font-bold mb-8 text-gray-900 text-left">
-              Register
-            </h1>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                  />
+                </svg>
+                Kembali
+              </button>
+            </div>
+
+            <div className="text-center">
+              <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-8 w-8 text-blue-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+                  />
+                </svg>
+              </div>
+              <h1 className="text-3xl font-bold text-gray-800">Daftar Akun</h1>
+              <p className="text-gray-500 mt-2">
+                Isi formulir berikut untuk membuat akun baru
+              </p>
+            </div>
+
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <label className="block text-sm text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Nama Lengkap
                 </label>
-                <input
-                  type="text"
-                  placeholder="Masukkan nama lengkap"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  required
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Nama lengkap Anda"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                    required
+                  />
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5 text-gray-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                      />
+                    </svg>
+                  </div>
+                </div>
               </div>
 
               <div>
-                <label className="block text-sm text-gray-700 mb-1">
-                  Email
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Alamat Email
                 </label>
-                <input
-                  type="email"
-                  placeholder="Masukkan email"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  required
-                />
+                <div className="relative">
+                  <input
+                    type="email"
+                    placeholder="email@anda.com"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    onChange={(e) =>
+                      setForm({ ...form, email: e.target.value })
+                    }
+                    required
+                  />
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5 text-gray-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                      />
+                    </svg>
+                  </div>
+                </div>
               </div>
 
               <div>
-                <label className="block text-sm text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Kata Sandi
                 </label>
                 <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
-                    placeholder="Masukkan kata sandi"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
+                    placeholder="••••••••"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pr-12"
                     onChange={(e) =>
                       setForm({ ...form, password: e.target.value })
                     }
@@ -152,13 +246,12 @@ export default function Register() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-blue-600"
-                    tabIndex={-1}
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-blue-600"
                   >
                     {showPassword ? (
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        className="w-5 h-5"
+                        className="h-5 w-5"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -179,7 +272,7 @@ export default function Register() {
                     ) : (
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        className="w-5 h-5"
+                        className="h-5 w-5"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -200,23 +293,55 @@ export default function Register() {
                     )}
                   </button>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  Minimal 8 karakter, gunakan kombinasi huruf, angka, dan
-                  simbol.
+                <p className="text-xs text-gray-500 mt-2">
+                  Minimal 8 karakter dengan kombinasi huruf, angka, dan simbol
                 </p>
               </div>
 
               <button
                 type="submit"
-                className="w-full py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+                disabled={isLoading}
+                className={`w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-blue-500 text-white font-medium rounded-lg hover:from-blue-700 hover:to-blue-600 transition-all shadow-md ${
+                  isLoading ? "opacity-75 cursor-not-allowed" : ""
+                }`}
               >
-                Register
+                {isLoading ? (
+                  <span className="flex items-center justify-center">
+                    <svg
+                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    Mendaftarkan...
+                  </span>
+                ) : (
+                  "Daftar Sekarang"
+                )}
               </button>
             </form>
-            <div className="mt-6 text-sm text-center">
+
+            <div className="text-center text-sm text-gray-500 pt-4 border-t border-gray-200">
               Sudah punya akun?{" "}
-              <Link href="/login" className="text-blue-600 hover:underline">
-                Login di sini
+              <Link
+                href="/login"
+                className="text-blue-600 font-medium hover:underline"
+              >
+                Masuk disini
               </Link>
             </div>
           </motion.div>

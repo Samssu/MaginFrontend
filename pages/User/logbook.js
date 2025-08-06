@@ -90,12 +90,20 @@ export default function FiturLogbook({ userId }) {
           (item) => item._id === userId
         );
         setRiwayatData(selectedRiwayat);
-        if (selectedRiwayat?.pembimbingId) {
+        // Jika riwayat memiliki data pembimbing lengkap, gunakan itu
+        if (selectedRiwayat?.pembimbing) {
+          setPembimbing(selectedRiwayat.pembimbing);
+        } else if (selectedRiwayat?.pembimbingId) {
+          // Jika hanya ada ID, fetch data pembimbing
           await fetchPembimbingData(selectedRiwayat.pembimbingId);
         }
       } else {
         setRiwayatData(response.data[0]);
-        if (response.data[0]?.pembimbingId) {
+        // Jika riwayat memiliki data pembimbing lengkap, gunakan itu
+        if (response.data[0]?.pembimbing) {
+          setPembimbing(response.data[0].pembimbing);
+        } else if (response.data[0]?.pembimbingId) {
+          // Jika hanya ada ID, fetch data pembimbing
           await fetchPembimbingData(response.data[0].pembimbingId);
         }
       }
@@ -279,8 +287,15 @@ export default function FiturLogbook({ userId }) {
                         Pembimbing
                       </h3>
                       <p className="text-sm font-medium text-gray-800">
-                        {pembimbing?.nama || "Belum ditentukan"}
+                        {riwayatData?.pembimbing?.nama ||
+                          pembimbing?.nama ||
+                          "Belum ditentukan"}
                       </p>
+                      {riwayatData?.pembimbing?.divisi && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          Divisi: {riwayatData.pembimbing.divisi}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>

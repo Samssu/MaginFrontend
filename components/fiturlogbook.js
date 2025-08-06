@@ -86,8 +86,22 @@ export default function Logbook({
         }
       );
 
-      // Jika ada pembimbingId, fetch data pembimbing
-      if (response.data.pembimbingId) {
+      // Jika ada data riwayat dengan pembimbing, gunakan itu
+      const riwayatResponse = await axios.get(`${API_BASE_URL}/api/riwayat`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const riwayatData =
+        riwayatResponse.data.find((r) => r._id === userId) ||
+        riwayatResponse.data[0];
+
+      if (riwayatData?.pembimbing) {
+        setUserData({
+          ...response.data,
+          pembimbing: riwayatData.pembimbing, // Gunakan data pembimbing dari riwayat
+        });
+      } else if (response.data.pembimbingId) {
+        // Jika tidak ada di riwayat, fetch data pembimbing
         const pembimbingRes = await axios.get(
           `${API_BASE_URL}/api/pembimbing/${response.data.pembimbingId}`,
           {
@@ -164,22 +178,17 @@ export default function Logbook({
     try {
       setPdfGenerating(true);
 
-      // Import dinamis jsPDF dan autoTable
       const { jsPDF } = await import("jspdf");
       const autoTable = (await import("jspdf-autotable")).default;
 
-      // Inisialisasi dokumen baru
       const doc = new jsPDF({
         orientation: "portrait",
         unit: "mm",
         format: "a4",
       });
 
-      // Set font default
-      doc.setFont("helvetica");
-      doc.setFontSize(12);
-
       // Header dokumen
+      doc.setFont("helvetica");
       doc.setFontSize(16);
       doc.setTextColor(40);
       doc.text("LOGBOOK MAGANG", 105, 20, { align: "center" });
@@ -190,11 +199,14 @@ export default function Logbook({
       doc.text(`Nama: ${userData?.nama || "-"}`, 20, userInfoY);
       doc.text(`Institusi: ${userData?.institusi || "-"}`, 20, userInfoY + 7);
       doc.text(`Divisi: ${userData?.divisi || "-"}`, 20, userInfoY + 14);
+
+      // Hanya tampilkan nama pembimbing
       doc.text(
-        `Pembimbing: ${userData?.pembimbing?.nama || "-"}`,
+        `Pembimbing: ${userData?.pembimbing?.nama || "Belum ditentukan"}`,
         20,
         userInfoY + 21
       );
+
       doc.text(
         `Periode: ${formatDate(periodeMulai)} - ${formatDate(periodeSelesai)}`,
         20,
@@ -203,17 +215,24 @@ export default function Logbook({
 
       // Header tabel
       const headers = [
-        ["No", "Tanggal", "Kegiatan", "Hasil", "Kendala", "Status"],
+        [
+          "No",
+          "Tanggal",
+          "Judul",
+          "Isi Kegiatan",
+          "File Laporan",
+          "Komentar Pembimbing",
+        ],
       ];
 
       // Data tabel
       const tableData = logs.map((log, index) => [
         index + 1,
         formatDate(log.tanggal || log.createdAt),
-        log.kegiatan || log.content || "-",
-        log.hasil || "-",
-        log.kendala || "-",
-        log.status || "-",
+        log.title || "-",
+        log.content || "-",
+        log.report ? "Ada" : "Tidak Ada",
+        log.comment || "-",
       ]);
 
       // Generate tabel
@@ -241,13 +260,12 @@ export default function Logbook({
         columnStyles: {
           0: { cellWidth: 10, halign: "center" },
           1: { cellWidth: 25 },
-          2: { cellWidth: 45 },
-          3: { cellWidth: 45 },
-          4: { cellWidth: 35 },
-          5: { cellWidth: 20, halign: "center" },
+          2: { cellWidth: 30 },
+          3: { cellWidth: 50 },
+          4: { cellWidth: 25, halign: "center" },
+          5: { cellWidth: 40 },
         },
         didDrawPage: function (data) {
-          // Footer dengan nomor halaman
           const pageCount = doc.internal.getNumberOfPages();
           doc.setFontSize(10);
           doc.text(

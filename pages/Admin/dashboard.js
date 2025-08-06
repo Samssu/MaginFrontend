@@ -27,11 +27,14 @@ import {
   Activity,
   RefreshCw,
   AlertCircle,
+  ChevronLeft,
+  ChevronRight,
 } from "react-feather";
 import { toast } from "react-toastify";
 import ProtectedRoute from "../../components/ProtectedRoute";
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
+const ITEMS_PER_PAGE = 5;
 
 export default function Dashboard() {
   const [stats, setStats] = useState({
@@ -44,21 +47,18 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const fetchStats = useCallback(async () => {
     try {
       const res = await axios.get("http://localhost:5000/api/pendaftaran");
       const data = res.data;
 
-      // Calculate statistics from the data
       const totalPendaftar = data.length;
       const totalDisetujui = data.filter(
         (p) => p.status === "disetujui"
       ).length;
       const totalMenunggu = data.filter((p) => p.status === "pending").length;
-
-      // For logbook count, you might need a separate API endpoint
-      // Here we're just using a placeholder
       const totalLogbook = data.reduce(
         (acc, curr) => acc + (curr.logbooks ? curr.logbooks.length : 0),
         0
@@ -79,7 +79,6 @@ export default function Dashboard() {
 
   const fetchActivities = useCallback(async () => {
     try {
-      // Fetch recent activities - you might need to implement this endpoint
       const res = await axios.get(
         "http://localhost:5000/api/aktivitas-terbaru"
       );
@@ -109,6 +108,21 @@ export default function Dashboard() {
     fetchAllData();
   }, [fetchAllData]);
 
+  // Pagination logic
+  const totalPages = Math.ceil(activities.length / ITEMS_PER_PAGE);
+  const paginatedActivities = activities.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) setCurrentPage(currentPage - 1);
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+  };
+
   const chartData = [
     { name: "Pendaftar", jumlah: stats.totalPendaftar },
     { name: "Disetujui", jumlah: stats.totalDisetujui },
@@ -134,6 +148,10 @@ export default function Dashboard() {
         return <CheckCircle className="text-green-500 w-5 h-5" />;
       case "ditolak":
         return <XCircle className="text-red-500 w-5 h-5" />;
+      case "edit":
+        return <RefreshCw className="text-orange-500 w-5 h-5" />;
+      case "perbaikan":
+        return <AlertCircle className="text-yellow-500 w-5 h-5" />;
       default:
         return <Activity className="text-gray-500 w-5 h-5" />;
     }
@@ -264,6 +282,7 @@ export default function Dashboard() {
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-semibold">Aktivitas Terbaru</h2>
               <span className="text-sm text-gray-500">
+                Menampilkan {paginatedActivities.length} dari{" "}
                 {activities.length} aktivitas
               </span>
             </div>
@@ -281,30 +300,81 @@ export default function Dashboard() {
                 ))}
               </div>
             ) : activities.length > 0 ? (
-              <ul className="space-y-3">
-                {activities.map((item, index) => (
-                  <li
-                    key={index}
-                    className="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg transition"
-                  >
-                    <div className="flex-shrink-0">
-                      {getActivityIcon(item.type)}
+              <>
+                <ul className="space-y-3 mb-4">
+                  {paginatedActivities.map((item, index) => (
+                    <li
+                      key={index}
+                      className="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg transition"
+                    >
+                      <div className="flex-shrink-0">
+                        {getActivityIcon(item.type)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm truncate">{item.message}</p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {new Date(item.timestamp).toLocaleString("id-ID", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between mt-4">
+                    <button
+                      onClick={handlePrevPage}
+                      disabled={currentPage === 1}
+                      className={`flex items-center px-3 py-1 rounded-md ${
+                        currentPage === 1
+                          ? "text-gray-400 cursor-not-allowed"
+                          : "text-gray-700 hover:bg-gray-100"
+                      }`}
+                    >
+                      <ChevronLeft className="w-4 h-4 mr-1" />
+                      Sebelumnya
+                    </button>
+
+                    <div className="flex space-x-1">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                        (page) => (
+                          <button
+                            key={page}
+                            onClick={() => setCurrentPage(page)}
+                            className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                              currentPage === page
+                                ? "bg-blue-600 text-white"
+                                : "text-gray-700 hover:bg-gray-100"
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        )
+                      )}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm truncate">{item.message}</p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {new Date(item.timestamp).toLocaleString("id-ID", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+
+                    <button
+                      onClick={handleNextPage}
+                      disabled={currentPage === totalPages}
+                      className={`flex items-center px-3 py-1 rounded-md ${
+                        currentPage === totalPages
+                          ? "text-gray-400 cursor-not-allowed"
+                          : "text-gray-700 hover:bg-gray-100"
+                      }`}
+                    >
+                      Selanjutnya
+                      <ChevronRight className="w-4 h-4 ml-1" />
+                    </button>
+                  </div>
+                )}
+              </>
             ) : (
               <div className="text-center py-8 text-gray-500">
                 <Activity className="mx-auto w-8 h-8 mb-2" />
