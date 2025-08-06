@@ -7,6 +7,8 @@ import jwt from "jsonwebtoken";
 import Navbar2 from "@/components/Navbar2";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import TabelRiwayat from "@/components/TabelRiwayat";
+import Footer from "@/components/Footer";
 
 const fadeInVariant = {
   hidden: { opacity: 0, y: 20 },
@@ -56,7 +58,6 @@ export default function UserDashboard() {
 
       <div>
         <Navbar2 />
-
         {/* Hero Section */}
         <section className="relative min-h-[50vh] flex items-center justify-center text-center overflow-hidden">
           <div className="absolute inset-0 z-0">
@@ -91,6 +92,11 @@ export default function UserDashboard() {
             </motion.p>
           </div>
         </section>
+        {/* Tabel Riwayat Section */}
+        <section className="py-10 px-6 sm:px-10 max-w-7xl mx-auto">
+          <TabelRiwayat />
+        </section>
+        <Footer />;
       </div>
     </>
   );

@@ -94,15 +94,47 @@ export default function Navbar() {
   useEffect(() => {
     const fetchStatus = async () => {
       if (!user?.email) return;
+
+      if (user?.role === "admin") {
+        setStatusMagang({
+          text: "Admin Maha Kuasa",
+          class: "text-purple-600 font-bold",
+        });
+        return;
+      }
+
       try {
         const res = await fetch("http://localhost:5000/api/pendaftaran");
         const data = await res.json();
         const dataUser = data.find((item) => item.email === user.email);
-        setStatusMagang(dataUser ? dataUser.status : "belum_mendaftar");
+
+        if (dataUser) {
+          let statusText = "Belum Terdaftar";
+          let statusClass = "text-red-600";
+
+          if (dataUser.status === "disetujui") {
+            statusText = "Terdaftar";
+            statusClass = "text-green-600";
+          } else if (dataUser.status === "ditolak") {
+            statusText = "Ditolak";
+            statusClass = "text-red-600";
+          } else if (dataUser.status === "perbaiki") {
+            statusText = "Perlu Perbaikan";
+            statusClass = "text-yellow-600";
+          } else if (dataUser.status === "pending") {
+            statusText = "Menunggu Review";
+            statusClass = "text-blue-600";
+          }
+
+          setStatusMagang({ text: statusText, class: statusClass });
+        } else {
+          setStatusMagang({ text: "Belum Terdaftar", class: "text-red-600" });
+        }
       } catch (err) {
         console.error("Gagal mengambil status pendaftaran:", err);
       }
     };
+
     fetchStatus();
   }, [user]);
 
@@ -119,6 +151,24 @@ export default function Navbar() {
       autoClose: 3000,
     });
     router.push("/login");
+  };
+
+  const handleLogbookClick = () => {
+    if (!isLoggedIn) {
+      toast.warn("Silakan login terlebih dahulu", {
+        position: "bottom-right",
+      });
+      return;
+    }
+
+    if (statusMagang?.text !== "Terdaftar") {
+      toast.error("Hanya peserta yang sudah terdaftar bisa mengakses Logbook", {
+        position: "bottom-right",
+      });
+      return;
+    }
+
+    router.push("/user/logbook");
   };
 
   const renderJurusanButtons = () => {
@@ -179,7 +229,7 @@ export default function Navbar() {
               className="hover:text-blue-500 flex items-center gap-1"
               onClick={() => setShowDropdown(!showDropdown)}
             >
-              Program Magang ▾
+              Daftar Jurusan Tersedia ▾
             </button>
             {showDropdown && (
               <div
@@ -207,15 +257,11 @@ export default function Navbar() {
           </button>
 
           <button
-            onClick={() => {
-              isLoggedIn
-                ? router.push("/user/logbook")
-                : toast.warn("Silakan login terlebih dahulu", {
-                    position: "bottom-right",
-                  });
-            }}
+            onClick={handleLogbookClick}
             className={`hover:text-blue-500 ${
-              !isLoggedIn && "opacity-50 cursor-not-allowed"
+              !isLoggedIn || statusMagang?.text !== "Terdaftar"
+                ? "opacity-50 cursor-not-allowed"
+                : ""
             }`}
           >
             Logbook
@@ -224,61 +270,85 @@ export default function Navbar() {
 
         <div className="flex items-center space-x-4">
           {isLoggedIn ? (
-            <div className="relative">
-              <img
-                src={profilePicture}
-                alt="Profile"
-                className="w-10 h-10 rounded-full object-cover cursor-pointer"
-                onClick={() => setShowProfileMenu(!showProfileMenu)}
-              />
-              {showProfileMenu && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="absolute top-full right-0 w-64 bg-white text-black border rounded-md shadow-lg z-50"
-                >
-                  <div className="px-4 py-3 border-b">
-                    <p className="font-semibold">Hi, {user?.name}</p>
-                    <p className="text-sm text-gray-500">{user?.email}</p>
-                    <p className="mt-2 text-sm">
-                      Status:
-                      <span
-                        className={`ml-2 font-medium ${
-                          statusMagang === "disetujui"
-                            ? "text-green-600"
-                            : "text-red-600"
-                        }`}
-                      >
-                        {statusMagang === "disetujui"
-                          ? "🟢 Terdaftar"
-                          : "🔴 Belum Terdaftar"}
-                      </span>
-                    </p>
-                  </div>
-                  <div className="py-2">
-                    <button
-                      onClick={() => router.push("/user/dashboard")}
-                      className="w-full text-left px-4 py-2 hover:bg-gray-100"
-                    >
-                      Dashboard
-                    </button>
-                    <button
-                      onClick={() => router.push("/user/profile/edit-profile")}
-                      className="w-full text-left px-4 py-2 hover:bg-gray-100"
-                    >
-                      Edit Profile
-                    </button>
+            <>
+              <div className="relative">
+                <img
+                  src={profilePicture}
+                  alt="Profile"
+                  className="w-10 h-10 rounded-full object-cover cursor-pointer"
+                  onClick={() => setShowProfileMenu(!showProfileMenu)}
+                />
 
-                    <button
-                      onClick={() => setShowLogoutConfirm(true)}
-                      className="w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
-                    >
-                      Sign Out
-                    </button>
-                  </div>
-                </motion.div>
-              )}
-            </div>
+                {showProfileMenu && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="absolute top-full right-0 w-64 bg-white text-black border rounded-md shadow-lg z-50"
+                  >
+                    <div className="px-4 py-3 border-b">
+                      <p className="font-semibold">
+                        Hi, {user?.name || "User"}
+                        {user?.role === "admin" && (
+                          <span className="ml-2 bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">
+                            Admin
+                          </span>
+                        )}
+                        {user?.role === "pembimbing" && (
+                          <span className="ml-2 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                            Pembimbing
+                          </span>
+                        )}
+                      </p>
+                      <p className="text-sm text-gray-500">{user?.email}</p>
+                      <p className="mt-2 text-sm">
+                        Status:
+                        <span
+                          className={`ml-2 font-medium ${
+                            statusMagang?.class || "text-red-600"
+                          }`}
+                        >
+                          {user?.role === "admin"
+                            ? "👑 Admin Maha Kuasa"
+                            : user?.role === "pembimbing"
+                            ? "🔵 Pembimbing"
+                            : statusMagang?.text === "Terdaftar"
+                            ? "🟢 Terdaftar"
+                            : "🔴 Belum Terdaftar"}
+                        </span>
+                      </p>
+                    </div>
+
+                    <div className="py-2">
+                      <button
+                        onClick={() => {
+                          router.push(
+                            user?.role === "admin"
+                              ? "/Admin/dashboard"
+                              : user?.role === "pembimbing"
+                              ? "/Pembimbing/dashboard"
+                              : "/user/dashboard"
+                          );
+                          setShowProfileMenu(false);
+                        }}
+                        className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                      >
+                        {user?.role === "admin"
+                          ? "Admin Dashboard"
+                          : user?.role === "pembimbing"
+                          ? "Dashboard Pembimbing"
+                          : "User Dashboard"}
+                      </button>
+                      <button
+                        onClick={() => setShowLogoutConfirm(true)}
+                        className="w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
+                      >
+                        Sign Out
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </div>
+            </>
           ) : (
             <>
               <Link href="/login">
@@ -326,7 +396,7 @@ export default function Navbar() {
               onClick={() => setShowDropdown(!showDropdown)}
               className="hover:text-blue-500"
             >
-              Program Magang ▾
+              Daftar Jurusan Tersedia ▾
             </button>
             {showDropdown && (
               <div className="absolute top-full mt-2 bg-gray-900 text-white shadow-2xl rounded-xl w-[28rem] z-50 overflow-hidden py-4 px-3">
@@ -347,10 +417,29 @@ export default function Navbar() {
 
           <button
             onClick={() => {
+              if (!isLoggedIn) {
+                toast.warn("Silakan login terlebih dahulu", {
+                  position: "bottom-right",
+                });
+                return;
+              }
+              if (statusMagang?.text !== "Terdaftar") {
+                toast.error(
+                  "Hanya peserta yang sudah terdaftar bisa mengakses Logbook",
+                  {
+                    position: "bottom-right",
+                  }
+                );
+                return;
+              }
               router.push("/user/logbook");
               setIsOpen(false);
             }}
-            className="hover:text-blue-500"
+            className={`hover:text-blue-500 ${
+              !isLoggedIn || statusMagang?.text !== "Terdaftar"
+                ? "opacity-50 cursor-not-allowed"
+                : ""
+            }`}
           >
             Logbook
           </button>
@@ -362,7 +451,38 @@ export default function Navbar() {
                 alt="Profile"
                 className="w-10 h-10 rounded-full object-cover"
               />
-              <p>{user?.name}</p>
+              <p>
+                {user?.name}
+                {user?.role === "admin" && (
+                  <span className="ml-2 bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">
+                    Admin
+                  </span>
+                )}
+                {user?.role === "pembimbing" && (
+                  <span className="ml-2 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                    Pembimbing
+                  </span>
+                )}
+              </p>
+              <button
+                onClick={() => {
+                  router.push(
+                    user?.role === "admin"
+                      ? "/admin/dashboard"
+                      : user?.role === "pembimbing"
+                      ? "/Pembimbing/dashboard"
+                      : "/user/dashboard"
+                  );
+                  setIsOpen(false);
+                }}
+                className="hover:text-blue-500"
+              >
+                {user?.role === "admin"
+                  ? "Admin Dashboard"
+                  : user?.role === "pembimbing"
+                  ? "Dashboard Pembimbing"
+                  : "User Dashboard"}
+              </button>
               <button
                 onClick={() => setShowLogoutConfirm(true)}
                 className="text-red-600 hover:text-red-700"

@@ -2,13 +2,12 @@ import { useRouter } from "next/router";
 import Link from "next/link";
 import {
   LayoutDashboard,
-  FileText,
   Users,
-  LogOut,
   BookOpenCheck,
+  FileText,
+  LogOut,
   Menu,
   X,
-  File,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import clsx from "clsx";
@@ -16,22 +15,25 @@ import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
 
 const menuItems = [
-  { label: "Dashboard", href: "/Admin/dashboard", icon: LayoutDashboard },
-  { label: "Data Pendaftaran", href: "/Admin/DataMagang", icon: FileText },
-  { label: "Data Pembimbing", href: "/Admin/Datapembimbing", icon: Users },
+  { label: "Dashboard", href: "/pembimbing/dashboard", icon: LayoutDashboard },
   {
-    label: "Data Logbook Magang",
-    href: "/Admin/Datalogbook",
+    label: "Peserta Magang",
+    href: "/pembimbing/PesertaMagang",
+    icon: Users,
+  },
+  {
+    label: "Logbook Magang",
+    href: "/pembimbing/LogbookMagang",
     icon: BookOpenCheck,
   },
   {
-    label: "Data Laporan Akhir", // Tambahan menu untuk Data Laporan Akhir
-    href: "/Admin/DataLaporanAkhir", // Tautan menuju halaman Laporan Akhir
-    icon: File, // Ikon untuk Laporan Akhir
+    label: "Laporan Akhir",
+    href: "/pembimbing/LaporanAkhir",
+    icon: FileText,
   },
 ];
 
-export default function AdminLayout({ children }) {
+export default function PembimbingLayout({ children }) {
   const router = useRouter();
   const [activePath, setActivePath] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -49,7 +51,7 @@ export default function AdminLayout({ children }) {
         return false;
       }
 
-      if (user.role !== "admin") {
+      if (user.role !== "pembimbing") {
         toast.error("Anda tidak memiliki akses ke halaman ini");
         router.replace("/");
         return false;
@@ -94,7 +96,9 @@ export default function AdminLayout({ children }) {
       {/* Mobile Header */}
       {isMobile && (
         <div className="md:hidden fixed top-0 left-0 right-0 bg-white shadow-md z-50 p-4 flex justify-between items-center">
-          <h1 className="text-xl font-bold text-blue-600">Admin Panel</h1>
+          <h1 className="text-xl font-bold text-blue-600">
+            Dashboard Pembimbing Magang
+          </h1>
           <button onClick={toggleMobileMenu} className="text-gray-700">
             {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -109,7 +113,7 @@ export default function AdminLayout({ children }) {
       >
         {!isMobile && (
           <div className="p-6 text-2xl font-bold text-blue-600 border-b border-gray-200">
-            Admin Panel
+            Dashboard Pembimbing Magang
           </div>
         )}
         <nav className="flex-1 px-4 py-6 space-y-2">
@@ -158,7 +162,7 @@ export default function AdminLayout({ children }) {
           }`}
         >
           <div className="p-6 text-2xl font-bold text-blue-600 border-b border-gray-200 flex justify-between items-center">
-            Menu Admin
+            Menu Pembimbing
             <button onClick={toggleMobileMenu} className="text-gray-700">
               <X size={24} />
             </button>
@@ -221,7 +225,7 @@ export default function AdminLayout({ children }) {
                 Konfirmasi Logout
               </h3>
               <p className="text-gray-600 mb-6">
-                Anda yakin ingin keluar dari akun admin?
+                Anda yakin ingin keluar dari akun pembimbing?
               </p>
               <div className="flex justify-end space-x-3">
                 <button

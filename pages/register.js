@@ -36,6 +36,15 @@ export default function Register() {
 
       if (data.token) {
         toast.success("OTP telah dikirim ke email Anda.");
+
+        // Simpan data pengguna di localStorage setelah registrasi
+        const userData = {
+          name: form.name,
+          email: form.email,
+        };
+        localStorage.setItem("user", JSON.stringify(userData));
+        localStorage.setItem("token", data.token);
+
         router.push({
           pathname: "/verify-otp",
           query: {
@@ -59,7 +68,6 @@ export default function Register() {
       </Head>
 
       <div className="relative min-h-screen grid grid-cols-1 md:grid-cols-2">
-        {/* Gambar background kiri */}
         <div className="hidden md:block relative">
           <div className="absolute inset-0 z-0">
             <img
@@ -70,7 +78,6 @@ export default function Register() {
           </div>
         </div>
 
-        {/* Form register */}
         <div className="flex items-center justify-center px-8 py-12 bg-white relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
@@ -78,7 +85,6 @@ export default function Register() {
             transition={{ duration: 0.6 }}
             className="w-full max-w-md"
           >
-            {/* Tombol kembali */}
             <button
               onClick={() => router.push("/")}
               className="mb-4 text-sm text-black-600 hover:underline flex items-center gap-2"
@@ -150,7 +156,6 @@ export default function Register() {
                     tabIndex={-1}
                   >
                     {showPassword ? (
-                      // Eye-off icon
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         className="w-5 h-5"
@@ -172,7 +177,6 @@ export default function Register() {
                         />
                       </svg>
                     ) : (
-                      // Eye icon
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         className="w-5 h-5"

@@ -6,10 +6,10 @@ import React from "react";
 import Head from "next/head";
 import Navbar2 from "@/components/Navbar2";
 import Footer from "@/components/Footer";
-import HeroSection from "@/components/details/Manajemen-Informatika/HeroSection";
-import Informatif from "@/components/details/Manajemen-Informatika/Informatif";
-import Role from "@/components/details/Manajemen-Informatika/Role";
-import Benefit from "@/components/details/Manajemen-Informatika/Benefit";
+import HeroSection from "@/components/details/Managemen-Informatika/HeroSection";
+import Informatif from "@/components/details/Managemen-Informatika/Informatif";
+import Role from "@/components/details/Managemen-Informatika/Role";
+import Benefit from "@/components/details/Managemen-Informatika/Benefit";
 import Magangcard from "@/components/Magangcard";
 
 const ManajemenInformatika = () => {

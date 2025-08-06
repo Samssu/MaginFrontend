@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import Link from "next/link";
 import Head from "next/head";
@@ -15,32 +17,75 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch("http://localhost:5000/api/login", {
+      // Coba login sebagai user biasa dulu
+      let res = await fetch("http://localhost:5000/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
         credentials: "include",
       });
 
-      const data = await res.json();
-      const { token, message } = data;
+      let data;
 
-      if (res.ok && token) {
-        localStorage.setItem("token", token);
-        const decoded = jwt.decode(token);
-
-        if (decoded?.role === "user" && decoded?.isVerified) {
-          toast.success("Login berhasil!");
-          router.push("/user/dashboard");
-        } else {
-          localStorage.removeItem("token");
-          toast.error("Akses ditolak. Verifikasi email Anda.");
-        }
+      // Handle response yang bukan JSON (misal error 404 HTML)
+      const contentType = res.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        data = await res.json();
       } else {
-        toast.error(message || "Email atau password salah.");
+        const text = await res.text();
+        throw new Error(text || "Login gagal");
       }
+
+      if (!res.ok) {
+        // Jika login sebagai user gagal, coba sebagai pembimbing
+        res = await fetch("http://localhost:5000/api/pembimbing/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(form),
+          credentials: "include",
+        });
+
+        // Handle response pembimbing
+        if (res.headers.get("content-type")?.includes("application/json")) {
+          data = await res.json();
+        } else {
+          const text = await res.text();
+          throw new Error(text || "Login pembimbing gagal");
+        }
+
+        if (!res.ok) {
+          throw new Error(data.message || "Login gagal");
+        }
+      }
+
+      const { token } = data;
+      localStorage.setItem("token", token);
+
+      // Decode token untuk mendapatkan data user
+      const decoded = jwt.decode(token);
+
+      // Simpan data user ke localStorage
+      const userData = {
+        name: decoded?.nama || decoded?.name,
+        email: decoded?.email,
+        role: decoded?.role,
+        divisi: decoded?.divisi,
+      };
+      localStorage.setItem("user", JSON.stringify(userData));
+
+      // Redirect berdasarkan role
+      if (decoded?.role === "admin") {
+        router.push("/Admin/dashboard");
+      } else if (decoded?.role === "pembimbing") {
+        router.push("/pembimbing/dashboard");
+      } else {
+        router.push("/user/dashboard");
+      }
+
+      toast.success("Login berhasil!");
     } catch (err) {
-      toast.error("Terjadi kesalahan server.");
+      console.error("Login error:", err);
+      toast.error(err.message || "Terjadi kesalahan saat login");
     }
   };
 
@@ -51,7 +96,6 @@ export default function Login() {
       </Head>
 
       <div className="relative min-h-screen grid grid-cols-1 md:grid-cols-2">
-        {/* Gambar background absolute */}
         <div className="hidden md:block relative">
           <div className="absolute inset-0 z-0">
             <img
@@ -62,12 +106,10 @@ export default function Login() {
           </div>
         </div>
 
-        {/* Form login */}
         <div className="flex items-center justify-center px-8 py-12 bg-white relative z-10">
           <div className="w-full max-w-md">
-            {/* Tombol Kembali */}
             <button
-              onClick={() => window.history.back()}
+              onClick={() => (window.location.href = "/")}
               className="mb-4 text-sm text-black-600 hover:underline flex items-center gap-2"
             >
               <svg
@@ -86,6 +128,7 @@ export default function Login() {
               </svg>
               Kembali
             </button>
+
             <h1 className="text-4xl font-bold mb-8 text-gray-900 text-left">
               Masuk
             </h1>
@@ -125,7 +168,6 @@ export default function Login() {
                     tabIndex={-1}
                   >
                     {showPassword ? (
-                      // Eye-off icon
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         className="w-5 h-5"
@@ -147,7 +189,6 @@ export default function Login() {
                         />
                       </svg>
                     ) : (
-                      // Eye icon
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         className="w-5 h-5"
