@@ -64,7 +64,7 @@ export default function UserDashboard() {
         <section className="relative min-h-[50vh] w-full flex items-center justify-center text-center overflow-hidden">
           <div className="absolute inset-0 z-0">
             <Image
-              src="/images/hero.jpg"
+              src="/images/bggallery.png"
               alt="Hero Background"
               fill
               className="object-cover object-center"

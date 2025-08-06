@@ -179,13 +179,14 @@ export default function BerandaCards() {
             >
               <Link
                 href={card.href}
-                className="block bg-white rounded-2xl shadow-md hover:shadow-xl transition duration-300 p-6 flex items-center gap-5"
+                className="block bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 p-6 flex items-start gap-5 border border-gray-100 hover:border-blue-100 relative overflow-hidden group"
               >
-                <div className="p-4 rounded-xl bg-blue-100 text-blue-600">
-                  <Icon size={32} />
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-50 to-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="p-3 rounded-lg bg-blue-50 text-blue-600 group-hover:bg-blue-100 group-hover:text-blue-700 transition-colors duration-300 z-10">
+                  <Icon size={24} />
                 </div>
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-1">
+                <div className="z-10">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors duration-300">
                     {card.title}
                   </h3>
                   <p className="text-gray-600 text-sm">{card.description}</p>
@@ -207,21 +208,24 @@ export default function BerandaCards() {
           <Link
             href="/user/pendaftaran"
             onClick={handlePendaftaranClick}
-            className="block bg-white rounded-2xl shadow-md hover:shadow-xl transition duration-300 p-6 flex items-center gap-5"
+            className="block bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 p-6 flex items-start gap-5 border border-gray-100 hover:border-blue-100 relative overflow-hidden group"
           >
             {/* Notification Badge */}
             {hasNewPendaftaran && (
-              <>
-                <span className="absolute -top-2 -left-2 h-4 w-4 rounded-full bg-red-500 animate-ping"></span>
-                <span className="absolute -top-2 -left-2 h-4 w-4 rounded-full bg-red-500"></span>
-              </>
+              <div className="absolute top-3 right-3">
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                </span>
+              </div>
             )}
 
-            <div className="p-4 rounded-xl bg-blue-100 text-blue-600">
-              <ClipboardList size={32} />
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-50 to-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="p-3 rounded-lg bg-blue-50 text-blue-600 group-hover:bg-blue-100 group-hover:text-blue-700 transition-colors duration-300 z-10">
+              <ClipboardList size={24} />
             </div>
-            <div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-1">
+            <div className="z-10">
+              <h3 className="text-lg font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors duration-300">
                 Pendaftaran
               </h3>
               <p className="text-gray-600 text-sm">
@@ -229,7 +233,7 @@ export default function BerandaCards() {
                 proses verifikasi.
               </p>
               {hasNewPendaftaran && (
-                <p className="text-xs text-red-500 mt-2">
+                <p className="text-xs text-red-500 mt-2 animate-pulse">
                   *Silakan lengkapi formulir pendaftaran
                 </p>
               )}
@@ -252,40 +256,44 @@ export default function BerandaCards() {
           onClick={handleLogbookClick}
           className={`block ${
             statusMagang?.text === "Terdaftar"
-              ? "bg-blue-50 hover:shadow-xl"
-              : "bg-gray-100 cursor-not-allowed"
-          } rounded-2xl shadow-md transition duration-300 p-6 flex items-center gap-5`}
+              ? "bg-gradient-to-r from-blue-50 to-white hover:shadow-md"
+              : "bg-gray-50 cursor-not-allowed"
+          } rounded-xl shadow-sm transition-all duration-300 p-6 flex items-start gap-5 border ${
+            statusMagang?.text === "Terdaftar"
+              ? "border-gray-100 hover:border-blue-100"
+              : "border-gray-100"
+          } relative overflow-hidden group`}
         >
           <div
-            className={`p-4 rounded-xl ${
+            className={`p-3 rounded-lg ${
               statusMagang?.text === "Terdaftar"
-                ? "bg-blue-200 text-blue-700"
-                : "bg-gray-200 text-gray-500"
-            }`}
+                ? "bg-blue-50 text-blue-600 group-hover:bg-blue-100 group-hover:text-blue-700"
+                : "bg-gray-100 text-gray-400"
+            } transition-colors duration-300 z-10`}
           >
-            <LogbookIcon size={32} />
+            <LogbookIcon size={24} />
           </div>
-          <div>
+          <div className="z-10">
             <h3
-              className={`text-xl font-semibold ${
+              className={`text-lg font-semibold ${
                 statusMagang?.text === "Terdaftar"
-                  ? "text-gray-900"
-                  : "text-gray-500"
-              } mb-1`}
+                  ? "text-gray-900 group-hover:text-blue-600"
+                  : "text-gray-400"
+              } mb-1 transition-colors duration-300`}
             >
               {cards[2].title}
             </h3>
             <p
               className={`text-sm ${
                 statusMagang?.text === "Terdaftar"
-                  ? "text-gray-700"
-                  : "text-gray-500"
+                  ? "text-gray-600"
+                  : "text-gray-400"
               }`}
             >
               {cards[2].description}
             </p>
             {statusMagang?.text !== "Terdaftar" && (
-              <p className="text-xs text-red-500 mt-2">
+              <p className="text-xs text-red-400 mt-2">
                 *Hanya tersedia untuk peserta yang sudah terdaftar
               </p>
             )}
@@ -307,21 +315,24 @@ export default function BerandaCards() {
           <Link
             href="/user/riwayat"
             onClick={handleRiwayatClick}
-            className="block bg-white rounded-2xl shadow-md hover:shadow-xl transition duration-300 p-6 flex items-center gap-5"
+            className="block bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 p-6 flex items-start gap-5 border border-gray-100 hover:border-blue-100 relative overflow-hidden group"
           >
             {/* Notification Badge */}
             {hasNewNotification && (
-              <>
-                <span className="absolute -top-2 -left-2 h-4 w-4 rounded-full bg-red-500 animate-ping"></span>
-                <span className="absolute -top-2 -left-2 h-4 w-4 rounded-full bg-red-500"></span>
-              </>
+              <div className="absolute top-3 right-3">
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                </span>
+              </div>
             )}
 
-            <div className="p-4 rounded-xl bg-blue-100 text-blue-600">
-              <Bell size={32} />
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-50 to-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="p-3 rounded-lg bg-blue-50 text-blue-600 group-hover:bg-blue-100 group-hover:text-blue-700 transition-colors duration-300 z-10">
+              <Bell size={24} />
             </div>
-            <div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-1">
+            <div className="z-10">
+              <h3 className="text-lg font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors duration-300">
                 Riwayat
               </h3>
               <p className="text-gray-600 text-sm">
@@ -333,7 +344,7 @@ export default function BerandaCards() {
                     Status: {statusMagang.text}
                   </span>
                   {hasNewNotification && (
-                    <span className="ml-2 h-2 w-2 rounded-full bg-red-500"></span>
+                    <span className="ml-2 h-2 w-2 rounded-full bg-red-500 animate-pulse"></span>
                   )}
                 </div>
               )}
@@ -361,13 +372,14 @@ export default function BerandaCards() {
                 icon: "🛠️",
               })
             }
-            className="w-full text-left bg-white rounded-2xl shadow-md hover:shadow-xl transition duration-300 p-6 flex items-center gap-5"
+            className="w-full text-left bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 p-6 flex items-start gap-5 border border-gray-100 hover:border-blue-100 relative overflow-hidden group"
           >
-            <div className="p-4 rounded-xl bg-blue-100 text-blue-600">
-              <Clock size={32} />
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-50 to-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="p-3 rounded-lg bg-blue-50 text-blue-600 group-hover:bg-blue-100 group-hover:text-blue-700 transition-colors duration-300 z-10">
+              <Clock size={24} />
             </div>
-            <div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-1">
+            <div className="z-10">
+              <h3 className="text-lg font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors duration-300">
                 Coming Soon
               </h3>
               <p className="text-gray-600 text-sm">

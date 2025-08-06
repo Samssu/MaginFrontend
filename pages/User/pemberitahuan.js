@@ -21,6 +21,7 @@ import {
   PartyPopper,
 } from "lucide-react";
 import clsx from "clsx";
+import Footer from "@/components/Footer";
 
 const fadeInVariant = {
   hidden: { opacity: 0, y: 20 },
@@ -240,7 +241,7 @@ export default function UserDashboard() {
         <Navbar2 />
 
         {/* Hero Section */}
-        <section className="relative min-h-[40vh] flex items-center justify-center text-center overflow-hidden">
+        <section className="relative min-h-[30vh] flex items-center justify-center text-center overflow-hidden">
           <div className="absolute inset-0 z-0">
             <Image
               src="/images/bggallery.png"
@@ -512,6 +513,7 @@ export default function UserDashboard() {
           )}
         </AnimatePresence>
       </div>
+      <Footer />
     </>
   );
 }

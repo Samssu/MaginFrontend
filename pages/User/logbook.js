@@ -165,7 +165,7 @@ export default function FiturLogbook({ userId }) {
       <section className="relative min-h-[30vh] flex items-center justify-center text-white">
         <div className="absolute inset-0 z-0">
           <Image
-            src="/images/hero.jpg"
+            src="/images/bgactivity.png"
             alt="Background"
             fill
             className="object-cover"
@@ -192,6 +192,31 @@ export default function FiturLogbook({ userId }) {
           >
             Catat dan pantau perkembangan aktivitas magang kamu
           </motion.p>
+        </div>
+
+        {/* Wave Animation Below Hero Section */}
+        <div className="absolute bottom-0 left-0 w-full overflow-hidden z-0">
+          <svg
+            viewBox="0 0 1440 320"
+            xmlns="http://www.w3.org/2000/svg"
+            preserveAspectRatio="none"
+            className="w-full h-32 sm:h-40"
+          >
+            <path
+              fill="#ffffff"
+              d="M0,160 C320,280 1120,40 1440,160 L1440,320 L0,320 Z"
+            >
+              <animate
+                attributeName="d"
+                dur="5s"
+                repeatCount="indefinite"
+                values="M0,160 C320,280 1120,40 1440,160 L1440,320 L0,320 Z;
+                  M0,180 C400,40 1040,280 1440,140 L1440,320 L0,320 Z;
+                  M0,140 C380,300 1080,60 1440,180 L1440,320 L0,320 Z;
+                  M0,160 C320,280 1120,40 1440,160 L1440,320 L0,320 Z"
+              />
+            </path>
+          </svg>
         </div>
       </section>
 
