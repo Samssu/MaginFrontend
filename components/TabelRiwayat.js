@@ -31,6 +31,7 @@ export default function TabelRiwayat() {
   const [selectedLaporan, setSelectedLaporan] = useState(null);
   const [laporanFile, setLaporanFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [selectedDetail, setSelectedDetail] = useState(null);
 
   const fetchData = async () => {
     try {
@@ -146,8 +147,6 @@ export default function TabelRiwayat() {
 
     try {
       const token = localStorage.getItem("token");
-      console.log("Mencoba mengunduh:", filename); // Debug log
-
       const response = await axios.get(
         `http://localhost:5000/api/download/${filename}`,
         {
@@ -155,12 +154,6 @@ export default function TabelRiwayat() {
           responseType: "blob",
         }
       );
-
-      console.log("Response download:", response); // Debug log
-
-      if (response.status !== 200) {
-        throw new Error("File tidak ditemukan di server");
-      }
 
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
@@ -170,20 +163,23 @@ export default function TabelRiwayat() {
       link.click();
       link.remove();
 
-      // Bebaskan memori
       setTimeout(() => window.URL.revokeObjectURL(url), 100);
     } catch (error) {
-      console.error("Download error details:", error);
-      toast.error(
-        error.response?.data?.message ||
-          `Gagal mengunduh file. ${error.message}`
-      );
+      console.error("Download error:", error);
+      toast.error("Gagal mengunduh file");
     }
   };
 
+  // Di tabelriwayat.js, update handleLaporanUpload
   const handleLaporanUpload = async (pendaftaranId) => {
     if (!laporanFile) {
       toast.error("Silakan pilih file laporan terlebih dahulu");
+      return;
+    }
+
+    // Validasi ukuran file
+    if (laporanFile.size > 20 * 1024 * 1024) {
+      toast.error("Ukuran file maksimal 20MB");
       return;
     }
 
@@ -210,15 +206,14 @@ export default function TabelRiwayat() {
       fetchData();
     } catch (error) {
       console.error("Upload error:", error);
-      toast.error("Gagal mengupload laporan");
+      if (error.response?.status === 413) {
+        toast.error("Ukuran file terlalu besar (maksimal 20MB)");
+      } else {
+        toast.error("Gagal mengupload laporan");
+      }
     } finally {
       setIsUploading(false);
     }
-  };
-
-  const previewLaporan = (file) => {
-    setSelectedLaporan(file);
-    setShowLaporanModal(true);
   };
 
   const getStatusIcon = (status) => {
@@ -382,23 +377,6 @@ export default function TabelRiwayat() {
                         >
                           <Edit className="mr-1" size={14} />
                           Edit
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDownload(item.suratBalasan);
-                          }}
-                          className={`inline-flex items-center px-3 py-1 border text-xs font-medium rounded-md ${
-                            item.status === "disetujui" && item.suratBalasan
-                              ? "border-purple-300 text-purple-700 bg-purple-50 hover:bg-purple-100"
-                              : "border-gray-300 text-gray-500 bg-gray-100 cursor-not-allowed"
-                          }`}
-                          disabled={
-                            !(item.status === "disetujui" && item.suratBalasan)
-                          }
-                        >
-                          <Download className="mr-1" size={14} />
-                          Surat Balasan
                         </button>
                       </div>
                     </td>
@@ -708,6 +686,7 @@ export default function TabelRiwayat() {
                                 )}
                                 Informasi Status
                               </h4>
+
                               <div
                                 className={`p-3 rounded-lg ${
                                   item.status === "disetujui"
@@ -750,6 +729,30 @@ export default function TabelRiwayat() {
                                       </div>
                                     )}
                                   </>
+                                )}
+
+                                {/* Informasi Status */}
+                                {item.status === "disetujui" && (
+                                  <div className="border-t border-gray-200 pt-4 mt-4">
+                                    <h4 className="font-medium text-gray-700 mb-3">
+                                      Surat Balasan
+                                    </h4>
+                                    <button
+                                      onClick={() =>
+                                        handleDownload(
+                                          selectedDetail.suratBalasan
+                                        )
+                                      }
+                                      className="flex items-center text-blue-600 hover:text-blue-800"
+                                    >
+                                      <FileText className="mr-1" size={14} />
+                                      Unduh Surat Balasan
+                                    </button>
+                                    <p className="text-xs text-gray-500 mt-2">
+                                      Surat Balasan tersedia jika status sudah
+                                      disetujui
+                                    </p>
+                                  </div>
                                 )}
 
                                 {item.status === "disetujui" &&
@@ -900,6 +903,63 @@ export default function TabelRiwayat() {
             </tbody>
           </table>
         </div>
+
+        {showLaporanModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">Upload Laporan Akhir</h3>
+                <button
+                  onClick={() => setShowLaporanModal(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Pilih File Laporan
+                  </label>
+                  <input
+                    type="file"
+                    onChange={(e) => setLaporanFile(e.target.files[0])}
+                    className="block w-full text-sm text-gray-500
+              file:mr-4 file:py-2 file:px-4
+              file:rounded-md file:border-0
+              file:text-sm file:font-semibold
+              file:bg-blue-50 file:text-blue-700
+              hover:file:bg-blue-100"
+                    accept=".pdf,.doc,.docx"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    Format: PDF/DOC/DOCX (Maks. 20MB)
+                  </p>
+                </div>
+                <div className="flex justify-end space-x-3 pt-4">
+                  <button
+                    onClick={() => setShowLaporanModal(false)}
+                    className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    onClick={(e) =>
+                      handleLaporanUpload(
+                        e,
+                        selectedLaporan?._id || editFormData._id
+                      )
+                    }
+                    disabled={isUploading}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    {isUploading ? "Mengupload..." : "Upload Laporan"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {showEditModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
@@ -1206,23 +1266,6 @@ export default function TabelRiwayat() {
                           }
                           className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                           required
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Pembimbing
-                        </label>
-                        <input
-                          type="text"
-                          value={editFormData.pembimbing || ""}
-                          onChange={(e) =>
-                            setEditFormData({
-                              ...editFormData,
-                              pembimbing: e.target.value,
-                            })
-                          }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                          placeholder="Nama Pembimbing"
                         />
                       </div>
                     </div>

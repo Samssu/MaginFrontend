@@ -94,16 +94,24 @@ export default function Pembimbing() {
   const fetchMahasiswa = async (pembimbingId) => {
     try {
       setIsLoading(true);
-      console.log("Fetching mahasiswa for pembimbing:", pembimbingId);
-
       const res = await axios.get(
         `http://localhost:5000/api/pembimbing/${pembimbingId}/mahasiswa`
       );
 
-      console.log("Received data:", res.data);
-      setMahasiswaBimbingan(res.data);
+      // Debugging - tampilkan response di console
+      console.log("Response data:", res.data);
+
+      // Pastikan response memiliki format yang benar
+      if (res.data && Array.isArray(res.data.mahasiswa)) {
+        setMahasiswaBimbingan(res.data.mahasiswa);
+      } else if (Array.isArray(res.data)) {
+        setMahasiswaBimbingan(res.data);
+      } else {
+        console.error("Format data tidak valid:", res.data);
+        setMahasiswaBimbingan([]);
+      }
     } catch (error) {
-      console.error("Error details:", {
+      console.error("Error fetching mahasiswa:", {
         message: error.message,
         response: error.response?.data,
         config: error.config,
@@ -407,36 +415,43 @@ export default function Pembimbing() {
                       <tr>
                         <td colSpan={6} className="px-6 py-4 bg-gray-50">
                           <div className="pl-14">
-                            <h4 className="text-sm font-medium text-gray-700 mb-2">
-                              Mahasiswa Bimbingan ({mahasiswaBimbingan.length})
-                            </h4>
+                            {/* Improved title with spacing */}
+                            <div className="flex items-center gap-3 mb-4">
+                              <h4 className="text-sm font-medium text-gray-700">
+                                Mahasiswa Bimbingan
+                              </h4>
+                              <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-1 rounded-full">
+                                {mahasiswaBimbingan.length}
+                              </span>
+                            </div>
+
                             {mahasiswaBimbingan.length > 0 ? (
                               <div className="overflow-x-auto">
                                 <table className="min-w-full divide-y divide-gray-200">
                                   <thead className="bg-gray-100">
                                     <tr>
-                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Nama
                                       </th>
-                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Email
                                       </th>
-                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Telepon
                                       </th>
-                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Institusi
                                       </th>
-                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Prodi
                                       </th>
-                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Status
                                       </th>
-                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Periode
                                       </th>
-                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Aksi
                                       </th>
                                     </tr>
@@ -444,7 +459,7 @@ export default function Pembimbing() {
                                   <tbody className="bg-white divide-y divide-gray-200">
                                     {mahasiswaBimbingan.map((mhs) => (
                                       <tr key={mhs._id}>
-                                        <td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
+                                        <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
                                           <button
                                             className="text-blue-600 hover:underline"
                                             onClick={() =>
@@ -454,21 +469,21 @@ export default function Pembimbing() {
                                             {mhs.nama}
                                           </button>
                                         </td>
-                                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
+                                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                                           {mhs.email || "-"}
                                         </td>
-                                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
+                                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                                           {mhs.telepon || "-"}
                                         </td>
-                                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
+                                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                                           {mhs.institusi}
                                         </td>
-                                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
+                                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                                           {mhs.prodi}
                                         </td>
-                                        <td className="px-4 py-2 whitespace-nowrap">
+                                        <td className="px-4 py-3 whitespace-nowrap">
                                           <span
-                                            className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                                            className={`px-2.5 py-1 text-xs font-semibold rounded-full ${
                                               mhs.status === "disetujui"
                                                 ? "bg-green-100 text-green-800"
                                                 : "bg-yellow-100 text-yellow-800"
@@ -477,7 +492,7 @@ export default function Pembimbing() {
                                             {mhs.status || "pending"}
                                           </span>
                                         </td>
-                                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
+                                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                                           {mhs.mulai && mhs.selesai
                                             ? `${new Date(
                                                 mhs.mulai
@@ -486,43 +501,91 @@ export default function Pembimbing() {
                                               ).toLocaleDateString()}`
                                             : "Belum ditentukan"}
                                         </td>
-                                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500 flex gap-2">
-                                          {/* Tombol Detail */}
-                                          <button
-                                            className="text-blue-600 hover:text-blue-800"
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              handleViewMahasiswaDetail(mhs);
-                                            }}
-                                          >
-                                            Detail
-                                          </button>
+                                        <td className="px-4 py-3 whitespace-nowrap">
+                                          <div className="flex flex-wrap gap-2">
+                                            {/* Detail Button */}
+                                            <button
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleViewMahasiswaDetail(mhs);
+                                              }}
+                                              className="flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100 transition-colors border border-blue-100 text-xs"
+                                            >
+                                              <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                className="h-3.5 w-3.5"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke="currentColor"
+                                              >
+                                                <path
+                                                  strokeLinecap="round"
+                                                  strokeLinejoin="round"
+                                                  strokeWidth={2}
+                                                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                                />
+                                              </svg>
+                                              Detail
+                                            </button>
 
-                                          {/* Tombol Logbook dengan Link */}
-                                          <Link
-                                            href={`/admin/DataLogbook?id=${
-                                              mhs._id
-                                            }&nama=${encodeURIComponent(
-                                              mhs.nama
-                                            )}`}
-                                            className="text-green-600 hover:text-green-800"
-                                            onClick={(e) => e.stopPropagation()}
-                                          >
-                                            Logbook
-                                          </Link>
+                                            {/* Logbook Button */}
+                                            <Link
+                                              href={`/admin/DataLogbook?id=${
+                                                mhs._id
+                                              }&nama=${encodeURIComponent(
+                                                mhs.nama
+                                              )}`}
+                                              className="flex items-center gap-1 px-3 py-1.5 bg-green-50 text-green-700 rounded-md hover:bg-green-100 transition-colors border border-green-100 text-xs"
+                                              onClick={(e) =>
+                                                e.stopPropagation()
+                                              }
+                                            >
+                                              <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                className="h-3.5 w-3.5"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke="currentColor"
+                                              >
+                                                <path
+                                                  strokeLinecap="round"
+                                                  strokeLinejoin="round"
+                                                  strokeWidth={2}
+                                                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                                />
+                                              </svg>
+                                              Logbook
+                                            </Link>
 
-                                          {/* Tombol Laporan dengan Link */}
-                                          <Link
-                                            href={`/admin/DataLaporanAkhir?id=${
-                                              mhs._id
-                                            }&nama=${encodeURIComponent(
-                                              mhs.nama
-                                            )}`}
-                                            className="text-purple-600 hover:text-purple-800"
-                                            onClick={(e) => e.stopPropagation()}
-                                          >
-                                            Laporan
-                                          </Link>
+                                            {/* Laporan Button */}
+                                            <Link
+                                              href={`/admin/DataLaporanAkhir?id=${
+                                                mhs._id
+                                              }&nama=${encodeURIComponent(
+                                                mhs.nama
+                                              )}`}
+                                              className="flex items-center gap-1 px-3 py-1.5 bg-purple-50 text-purple-700 rounded-md hover:bg-purple-100 transition-colors border border-purple-100 text-xs"
+                                              onClick={(e) =>
+                                                e.stopPropagation()
+                                              }
+                                            >
+                                              <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                className="h-3.5 w-3.5"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke="currentColor"
+                                              >
+                                                <path
+                                                  strokeLinecap="round"
+                                                  strokeLinejoin="round"
+                                                  strokeWidth={2}
+                                                  d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                                />
+                                              </svg>
+                                              Laporan
+                                            </Link>
+                                          </div>
                                         </td>
                                       </tr>
                                     ))}

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 import { toast } from "react-toastify";
 import PembimbingLayout from "@/components/layouts/PembimbingLayout";
@@ -12,13 +12,43 @@ import {
   Calendar,
   CheckCircle,
   XCircle,
+  User,
+  GraduationCap,
+  Building,
+  UserCog,
 } from "lucide-react";
 
 export default function LogbookMagang() {
   const router = useRouter();
-  const [logbooks, setLogbooks] = useState([]);
+  const searchParams = useSearchParams();
+  const mahasiswaId = searchParams.get("id");
+
+  const [dataMagang, setDataMagang] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedMahasiswa, setSelectedMahasiswa] = useState(null);
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "-";
+    const date = new Date(dateString);
+    const monthNames = [
+      "Januari",
+      "Februari",
+      "Maret",
+      "April",
+      "Mei",
+      "Juni",
+      "Juli",
+      "Agustus",
+      "September",
+      "Oktober",
+      "November",
+      "Desember",
+    ];
+    return `${date.getDate()} ${
+      monthNames[date.getMonth()]
+    } ${date.getFullYear()}`;
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -30,7 +60,19 @@ export default function LogbookMagang() {
         }
 
         const response = await axios.get(`/api/pembimbing/${user.id}/logbooks`);
-        setLogbooks(response.data);
+        const data = response.data;
+
+        setDataMagang(data);
+
+        // Set mahasiswa yang dipilih berdasarkan ID dari URL atau mahasiswa pertama
+        if (mahasiswaId && data.length > 0) {
+          const selected = data.find(
+            (item) => item.mahasiswa._id === mahasiswaId
+          );
+          setSelectedMahasiswa(selected || data[0]);
+        } else if (data.length > 0) {
+          setSelectedMahasiswa(data[0]);
+        }
       } catch (error) {
         console.error("Error fetching logbooks:", error);
         toast.error("Gagal memuat data logbook");
@@ -40,12 +82,10 @@ export default function LogbookMagang() {
     };
 
     fetchData();
-  }, [router]);
+  }, [router, mahasiswaId]);
 
-  const filteredLogbooks = logbooks.filter(
-    (l) =>
-      l.mahasiswa.nama.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      l.kegiatan.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredLogbooks = selectedMahasiswa?.logbooks?.filter((l) =>
+    l.kegiatan.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) {
@@ -70,6 +110,137 @@ export default function LogbookMagang() {
         </p>
       </div>
 
+      {/* Informasi Magang */}
+      {dataMagang.length > 0 && (
+        <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+          <div className="p-4 md:p-6 bg-gradient-to-r from-blue-600 to-blue-800 text-white">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+              <div>
+                <h2 className="text-xl font-bold flex items-center gap-2">
+                  <User className="text-blue-200" size={18} />
+                  <span className="text-sm md:text-base">Informasi Magang</span>
+                </h2>
+                <p className="text-blue-100 text-xs mt-1">
+                  Detail peserta magang yang Anda bimbing
+                </p>
+              </div>
+              {dataMagang.length > 1 && (
+                <select
+                  className="bg-blue-700 text-white rounded-md px-3 py-1 text-sm"
+                  onChange={(e) => {
+                    const selected = dataMagang[e.target.value];
+                    setSelectedMahasiswa(selected);
+                    router.push(
+                      `/pembimbing/LogbookMagang?id=${selected.mahasiswa._id}`
+                    );
+                  }}
+                  value={dataMagang.findIndex(
+                    (item) =>
+                      item.mahasiswa._id === selectedMahasiswa?.mahasiswa?._id
+                  )}
+                >
+                  {dataMagang.map((item, index) => (
+                    <option key={index} value={index}>
+                      {item.mahasiswa.nama}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-0 p-0">
+            {/* Nama */}
+            <div className="bg-blue-50 p-4 border-b md:border-b-0 md:border-r border-gray-200">
+              <div className="flex items-center gap-3 h-full">
+                <div className="p-2 bg-blue-100 rounded-full flex-shrink-0">
+                  <User className="text-blue-600" size={16} />
+                </div>
+                <div>
+                  <h3 className="text-xs font-medium text-gray-500">Nama</h3>
+                  <p className="text-sm font-medium text-gray-800">
+                    {selectedMahasiswa?.mahasiswa?.nama || "-"}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Institusi */}
+            <div className="bg-blue-50 p-4 border-b md:border-b-0 md:border-r border-gray-200">
+              <div className="flex items-center gap-3 h-full">
+                <div className="p-2 bg-blue-100 rounded-full flex-shrink-0">
+                  <GraduationCap className="text-blue-600" size={16} />
+                </div>
+                <div>
+                  <h3 className="text-xs font-medium text-gray-500">
+                    Institusi
+                  </h3>
+                  <p className="text-sm font-medium text-gray-800">
+                    {selectedMahasiswa?.mahasiswa?.institusi || "-"}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Divisi */}
+            <div className="bg-blue-50 p-4 border-b md:border-b-0 md:border-r border-gray-200">
+              <div className="flex items-center gap-3 h-full">
+                <div className="p-2 bg-blue-100 rounded-full flex-shrink-0">
+                  <Building className="text-blue-600" size={16} />
+                </div>
+                <div>
+                  <h3 className="text-xs font-medium text-gray-500">Divisi</h3>
+                  <p className="text-sm font-medium text-gray-800">
+                    {selectedMahasiswa?.mahasiswa?.divisi || "Belum ditentukan"}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Pembimbing */}
+            <div className="bg-blue-50 p-4">
+              <div className="flex items-center gap-3 h-full">
+                <div className="p-2 bg-blue-100 rounded-full flex-shrink-0">
+                  <UserCog className="text-blue-600" size={16} />
+                </div>
+                <div>
+                  <h3 className="text-xs font-medium text-gray-500">
+                    Pembimbing
+                  </h3>
+                  <p className="text-sm font-medium text-gray-800">
+                    {selectedMahasiswa?.pembimbing?.nama || "Anda"}
+                  </p>
+                  {selectedMahasiswa?.pembimbing?.divisi && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Divisi: {selectedMahasiswa.pembimbing.divisi}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Periode Magang */}
+            <div className="bg-blue-50 p-4 col-span-1 md:col-span-4 border-t border-gray-200">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 rounded-full flex-shrink-0">
+                  <BookOpen className="text-blue-600" size={16} />
+                </div>
+                <div>
+                  <h3 className="text-xs font-medium text-gray-500">
+                    Periode Magang
+                  </h3>
+                  <p className="text-sm font-medium text-gray-800">
+                    {formatDate(selectedMahasiswa?.periode?.mulai)} -{" "}
+                    {formatDate(selectedMahasiswa?.periode?.selesai)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Daftar Logbook */}
       <div className="bg-white rounded-xl shadow-sm p-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
           <div className="relative w-full md:w-64">
@@ -87,7 +258,7 @@ export default function LogbookMagang() {
           </div>
         </div>
 
-        {filteredLogbooks.length > 0 ? (
+        {filteredLogbooks?.length > 0 ? (
           <div className="space-y-4">
             {filteredLogbooks.map((logbook) => (
               <div
@@ -96,9 +267,6 @@ export default function LogbookMagang() {
               >
                 <div className="flex justify-between items-start">
                   <div>
-                    <h3 className="font-medium text-gray-900">
-                      {logbook.mahasiswa.nama}
-                    </h3>
                     <p className="text-sm text-gray-500 mt-1">
                       {logbook.kegiatan}
                     </p>
@@ -124,7 +292,9 @@ export default function LogbookMagang() {
                     )}
                     <button
                       onClick={() =>
-                        router.push(`/pembimbing/LogbookMagang/${logbook.id}`)
+                        router.push(
+                          `/pembimbing/LogbookMagang/${logbook.id}?id=${selectedMahasiswa.mahasiswa._id}`
+                        )
                       }
                       className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-sm"
                     >

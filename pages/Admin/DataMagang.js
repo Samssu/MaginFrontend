@@ -499,11 +499,12 @@ export default function DataPendaftaran() {
           </div>
         </div>
       )}
-      {/* Data Table */}
-      <div className="bg-white rounded-xl shadow overflow-hidden">
+
+      {/* Modern Data Table */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="min-w-full">
-            <thead className="bg-gray-100">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
               <tr>
                 {[
                   "Nama",
@@ -517,30 +518,70 @@ export default function DataPendaftaran() {
                 ].map((header) => (
                   <th
                     key={header}
-                    className="p-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
                     {header}
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="bg-white divide-y divide-gray-200">
               {currentItems.length > 0 ? (
                 currentItems.map((item) => (
-                  <tr key={item._id} className="hover:bg-gray-50">
-                    <td
-                      className="p-3 text-blue-600 hover:underline cursor-pointer"
-                      onClick={() => setSelectedDetail(item)}
-                    >
-                      {item.nama}
+                  <tr
+                    key={item._id}
+                    className="hover:bg-gray-50 transition-colors"
+                  >
+                    {/* Nama dengan Avatar */}
+                    <td className="px-4 py- whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        </div>
+                        <div className="ml-4">
+                          <div
+                            className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+                            onClick={() => setSelectedDetail(item)}
+                          >
+                            {item.nama}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {item.email}
+                          </div>
+                        </div>
+                      </div>
                     </td>
-                    <td className="p-3">{item.institusi}</td>
-                    <td className="p-3">{item.semester}</td>
-                    <td className="p-3">{item.prodi}</td>
-                    <td className="p-3">{item.email}</td>
-                    <td className="p-3">
+
+                    <td className="px-4 py- whitespace-nowrap text-sm text-gray-700">
+                      {item.institusi}
+                    </td>
+
+                    <td className="px-4 py- whitespace-nowrap text-sm text-gray-500">
+                      {item.semester}
+                    </td>
+
+                    <td className="px-4 py- whitespace-nowrap text-sm text-gray-700">
+                      {item.prodi}
+                    </td>
+
+                    <td className="px-4 py- whitespace-nowrap text-sm text-gray-500">
+                      {item.email}
+                    </td>
+
+                    <td className="px-4 py- whitespace-nowrap">
                       <span
-                        className={`px-2 py-1 text-xs rounded-full ${
+                        className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
                           item.status === "disetujui"
                             ? "bg-green-100 text-green-800"
                             : item.status === "ditolak"
@@ -553,23 +594,43 @@ export default function DataPendaftaran() {
                         {item.status || "pending"}
                       </span>
                     </td>
-                    <td className="p-3">
+
+                    <td className="px-4 py- whitespace-nowrap text-sm text-gray-500">
                       {item.pembimbing ? (
-                        <span className="text-sm text-gray-700">
+                        <span className="text-gray-700">
                           {getPembimbingName(item.pembimbing)}
                         </span>
                       ) : (
-                        <span className="text-sm text-gray-400">Belum ada</span>
+                        <span className="text-gray-400">Belum ada</span>
                       )}
                     </td>
-                    <td className="p-3">
-                      <div className="flex flex-wrap gap-1">
+
+                    {/* Tombol Aksi (Tetap sama seperti sebelumnya) */}
+                    <td className="px-4 py- whitespace-nowrap text-sm font-medium">
+                      <div className="flex flex-wrap gap-2">
+                        {/* Edit Button */}
                         <button
                           onClick={() => handleEdit(item)}
-                          className="bg-yellow-500 hover:bg-yellow-600 text-white text-xs px-2 py-1 rounded"
+                          className="flex items-center gap-1 px-3 py-1.5 bg-yellow-100 text-yellow-800 rounded-lg hover:bg-yellow-200 transition-all shadow-sm border border-yellow-200 text-sm font-medium"
                         >
-                          Edit
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-4 w-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                            />
+                          </svg>
+                          <span>Edit</span>
                         </button>
+
+                        {/* Action Buttons */}
                         {["disetujui", "ditolak", "perbaiki"].map((action) => (
                           <button
                             key={action}
@@ -577,46 +638,145 @@ export default function DataPendaftaran() {
                               setSelectedAction({ action, data: item })
                             }
                             disabled={item.status === action}
-                            className={`${
+                            className={`flex items-center gap-1 px-3 py-1.5 rounded-lg transition-all shadow-sm border text-sm font-medium ${
                               action === "disetujui"
-                                ? "bg-green-500 hover:bg-green-600"
+                                ? "bg-green-100 text-green-800 border-green-200 hover:bg-green-200"
                                 : action === "ditolak"
-                                ? "bg-red-500 hover:bg-red-600"
-                                : "bg-blue-500 hover:bg-blue-600"
-                            } text-white text-xs px-2 py-1 rounded disabled:opacity-50`}
+                                ? "bg-red-100 text-red-800 border-red-200 hover:bg-red-200"
+                                : "bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200"
+                            } ${
+                              item.status === action
+                                ? "opacity-50 cursor-not-allowed"
+                                : ""
+                            }`}
                           >
-                            {action === "disetujui"
-                              ? "Setujui"
-                              : action === "ditolak"
-                              ? "Tolak"
-                              : "Perbaiki"}
+                            {action === "disetujui" ? (
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-4 w-4"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M5 13l4 4L19 7"
+                                />
+                              </svg>
+                            ) : action === "ditolak" ? (
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-4 w-4"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M6 18L18 6M6 6l12 12"
+                                />
+                              </svg>
+                            ) : (
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-4 w-4"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                />
+                              </svg>
+                            )}
+                            <span>
+                              {action === "disetujui"
+                                ? "Setujui"
+                                : action === "ditolak"
+                                ? "Tolak"
+                                : "Perbaiki"}
+                            </span>
                           </button>
                         ))}
+
+                        {/* Pembimbing Buttons */}
                         {item.status === "disetujui" && !item.pembimbing && (
                           <button
                             onClick={() => handleTambahPembimbing(item._id)}
-                            className="bg-purple-500 hover:bg-purple-600 text-white text-xs px-2 py-1 rounded"
+                            className="flex items-center gap-1 px-3 py-1.5 bg-purple-100 text-purple-800 rounded-lg hover:bg-purple-200 transition-all shadow-sm border border-purple-200 text-sm font-medium"
                           >
-                            Tambah Pembimbing
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-4 w-4"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+                              />
+                            </svg>
+                            <span>Tambah Pembimbing</span>
                           </button>
                         )}
+
                         {item.status === "disetujui" && item.pembimbing && (
                           <button
                             onClick={() => handleTambahPembimbing(item._id)}
-                            className="bg-indigo-500 hover:bg-indigo-600 text-white text-xs px-2 py-1 rounded"
+                            className="flex items-center gap-1 px-3 py-1.5 bg-indigo-100 text-indigo-800 rounded-lg hover:bg-indigo-200 transition-all shadow-sm border border-indigo-200 text-sm font-medium"
                           >
-                            Ubah Pembimbing
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-4 w-4"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+                              />
+                            </svg>
+                            <span>Ubah Pembimbing</span>
                           </button>
                         )}
+
+                        {/* Sertifikat Button */}
                         {item.status === "disetujui" && (
                           <button
                             onClick={() => {
                               setSelectedCertificatePendaftar(item);
                               setShowCertificateModal(true);
                             }}
-                            className="bg-teal-500 hover:bg-teal-600 text-white text-xs px-2 py-1 rounded"
+                            className="flex items-center gap-1 px-3 py-1.5 bg-teal-100 text-teal-800 rounded-lg hover:bg-teal-200 transition-all shadow-sm border border-teal-200 text-sm font-medium"
                           >
-                            Tambah Sertifikat
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-4 w-4"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                              />
+                            </svg>
+                            <span>Tambah Sertifikat</span>
                           </button>
                         )}
                       </div>
@@ -625,8 +785,37 @@ export default function DataPendaftaran() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={8} className="p-4 text-center text-gray-500">
-                    {isLoading ? "Memuat data..." : "Tidak ada data ditemukan"}
+                  <td
+                    colSpan={8}
+                    className="px-6 py-4 text-center text-gray-500"
+                  >
+                    {isLoading ? (
+                      <div className="flex justify-center items-center">
+                        <svg
+                          className="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-500"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                        Memuat data...
+                      </div>
+                    ) : (
+                      "Tidak ada data ditemukan"
+                    )}
                   </td>
                 </tr>
               )}
@@ -741,6 +930,7 @@ export default function DataPendaftaran() {
           </div>
         )}
       </div>
+
       {/* Detail Modal */}
       {selectedDetail && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">

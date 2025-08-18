@@ -59,10 +59,10 @@ export default function UserDashboard() {
       <div>
         <Navbar2 />
         {/* Hero Section */}
-        <section className="relative min-h-[50vh] flex items-center justify-center text-center overflow-hidden">
+        <section className="relative min-h-[40vh] flex items-center justify-center text-center overflow-hidden">
           <div className="absolute inset-0 z-0">
             <Image
-              src="/images/hero.jpg"
+              src="/images/management-informatika.jpg"
               alt="Hero Background"
               fill
               className="object-cover"
@@ -78,7 +78,7 @@ export default function UserDashboard() {
               custom={0.2}
               className="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-4"
             >
-              Selamat Datang di Dashboard
+              Riwayat
             </motion.h1>
             <motion.p
               variants={fadeInVariant}
@@ -87,7 +87,7 @@ export default function UserDashboard() {
               custom={0.4}
               className="text-lg sm:text-xl text-gray-200"
             >
-              Kelola pendaftaran magang dan logbook kegiatanmu dengan mudah dan
+              Kelola data pendaftaran magang kegiatanmu dengan mudah dan
               profesional.
             </motion.p>
           </div>
