@@ -533,7 +533,7 @@ export default function DataPendaftaran() {
                     className="hover:bg-gray-50 transition-colors"
                   >
                     {/* Nama dengan Avatar */}
-                    <td className="px-4 py- whitespace-nowrap">
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
                           <svg
@@ -563,19 +563,19 @@ export default function DataPendaftaran() {
                       </div>
                     </td>
 
-                    <td className="px-4 py- whitespace-nowrap text-sm text-gray-700">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
                       {item.institusi}
                     </td>
 
-                    <td className="px-4 py- whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                       {item.semester}
                     </td>
 
-                    <td className="px-4 py- whitespace-nowrap text-sm text-gray-700">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
                       {item.prodi}
                     </td>
 
-                    <td className="px-4 py- whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                       {item.email}
                     </td>
 

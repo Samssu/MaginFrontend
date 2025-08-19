@@ -6,7 +6,6 @@ import { toast } from "react-toastify";
 import PembimbingLayout from "@/components/layouts/PembimbingLayout";
 import {
   BookOpen,
-  ChevronRight,
   Search,
   Frown,
   Calendar,
@@ -16,6 +15,8 @@ import {
   GraduationCap,
   Building,
   UserCog,
+  MessageSquare,
+  Download,
 } from "lucide-react";
 
 export default function LogbookMagang() {
@@ -27,6 +28,8 @@ export default function LogbookMagang() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedMahasiswa, setSelectedMahasiswa] = useState(null);
+  const [commentInputs, setCommentInputs] = useState({});
+  const [submittingComment, setSubmittingComment] = useState(false);
 
   const formatDate = (dateString) => {
     if (!dateString) return "-";
@@ -84,8 +87,88 @@ export default function LogbookMagang() {
     fetchData();
   }, [router, mahasiswaId]);
 
-  const filteredLogbooks = selectedMahasiswa?.logbooks?.filter((l) =>
-    l.kegiatan.toLowerCase().includes(searchTerm.toLowerCase())
+  const handleCommentChange = (logbookId, comment) => {
+    setCommentInputs((prev) => ({
+      ...prev,
+      [logbookId]: comment,
+    }));
+  };
+
+  const submitComment = async (logbookId) => {
+    if (!commentInputs[logbookId]?.trim()) {
+      toast.warning("Komentar tidak boleh kosong");
+      return;
+    }
+
+    try {
+      setSubmittingComment(true);
+      const token = localStorage.getItem("token");
+
+      await axios.post(
+        `/api/logbook/${logbookId}/comment`,
+        {
+          comment: commentInputs[logbookId],
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      toast.success("Komentar berhasil ditambahkan");
+
+      // Refresh data
+      const user = JSON.parse(localStorage.getItem("user"));
+      const response = await axios.get(`/api/pembimbing/${user.id}/logbooks`);
+      setDataMagang(response.data);
+
+      // Clear comment input
+      setCommentInputs((prev) => ({
+        ...prev,
+        [logbookId]: "",
+      }));
+    } catch (error) {
+      console.error("Error submitting comment:", error);
+      toast.error("Gagal menambahkan komentar");
+    } finally {
+      setSubmittingComment(false);
+    }
+  };
+
+  const downloadLogbook = async () => {
+    if (!selectedMahasiswa) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `/api/pembimbing/logbook/export/${selectedMahasiswa.mahasiswa._id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          responseType: "blob",
+        }
+      );
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute(
+        "download",
+        `logbook-${selectedMahasiswa.mahasiswa.nama}.pdf`
+      );
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      toast.success("Logbook berhasil diunduh");
+    } catch (error) {
+      console.error("Error downloading logbook:", error);
+      toast.error("Gagal mengunduh logbook");
+    }
+  };
+
+  const filteredLogbooks = selectedMahasiswa?.logbooks?.filter(
+    (l) =>
+      l.kegiatan.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      l.tanggal.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) {
@@ -111,7 +194,7 @@ export default function LogbookMagang() {
       </div>
 
       {/* Informasi Magang */}
-      {dataMagang.length > 0 && (
+      {dataMagang.length > 0 && selectedMahasiswa && (
         <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
           <div className="p-4 md:p-6 bg-gradient-to-r from-blue-600 to-blue-800 text-white">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
@@ -124,28 +207,37 @@ export default function LogbookMagang() {
                   Detail peserta magang yang Anda bimbing
                 </p>
               </div>
-              {dataMagang.length > 1 && (
-                <select
-                  className="bg-blue-700 text-white rounded-md px-3 py-1 text-sm"
-                  onChange={(e) => {
-                    const selected = dataMagang[e.target.value];
-                    setSelectedMahasiswa(selected);
-                    router.push(
-                      `/pembimbing/LogbookMagang?id=${selected.mahasiswa._id}`
-                    );
-                  }}
-                  value={dataMagang.findIndex(
-                    (item) =>
-                      item.mahasiswa._id === selectedMahasiswa?.mahasiswa?._id
-                  )}
+              <div className="flex gap-2">
+                <button
+                  onClick={downloadLogbook}
+                  className="bg-blue-700 text-white rounded-md px-3 py-2 text-sm flex items-center gap-1 hover:bg-blue-800"
                 >
-                  {dataMagang.map((item, index) => (
-                    <option key={index} value={index}>
-                      {item.mahasiswa.nama}
-                    </option>
-                  ))}
-                </select>
-              )}
+                  <Download size={16} />
+                  Unduh Logbook
+                </button>
+                {dataMagang.length > 1 && (
+                  <select
+                    className="bg-blue-700 text-white rounded-md px-3 py-2 text-sm"
+                    onChange={(e) => {
+                      const selected = dataMagang[e.target.value];
+                      setSelectedMahasiswa(selected);
+                      router.push(
+                        `/pembimbing/LogbookMagang?id=${selected.mahasiswa._id}`
+                      );
+                    }}
+                    value={dataMagang.findIndex(
+                      (item) =>
+                        item.mahasiswa._id === selectedMahasiswa?.mahasiswa?._id
+                    )}
+                  >
+                    {dataMagang.map((item, index) => (
+                      <option key={index} value={index}>
+                        {item.mahasiswa.nama}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
             </div>
           </div>
 
@@ -240,7 +332,7 @@ export default function LogbookMagang() {
         </div>
       )}
 
-      {/* Daftar Logbook */}
+      {/* Daftar Logbook dalam Tabel */}
       <div className="bg-white rounded-xl shadow-sm p-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
           <div className="relative w-full md:w-64">
@@ -259,51 +351,100 @@ export default function LogbookMagang() {
         </div>
 
         {filteredLogbooks?.length > 0 ? (
-          <div className="space-y-4">
-            {filteredLogbooks.map((logbook) => (
-              <div
-                key={logbook.id}
-                className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
-              >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="text-sm text-gray-500 mt-1">
-                      {logbook.kegiatan}
-                    </p>
-                    <div className="flex items-center mt-2 text-sm text-gray-500">
-                      <Calendar size={14} className="mr-1" />
-                      {new Date(logbook.tanggal).toLocaleDateString("id-ID", {
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                      })}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {logbook.status === "verified" ? (
-                      <span className="flex items-center text-sm text-green-600">
-                        <CheckCircle size={16} className="mr-1" /> Terverifikasi
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Tanggal
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Kegiatan
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    File Laporan
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Komentar
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Aksi
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredLogbooks.map((logbook) => (
+                  <tr key={logbook._id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {formatDate(logbook.tanggal)}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-900">
+                      <div className="max-w-md">{logbook.kegiatan}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {logbook.report ? (
+                        <a
+                          href={`http://localhost:5000${logbook.report}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800"
+                        >
+                          Lihat File
+                        </a>
+                      ) : (
+                        <span className="text-gray-400">Tidak ada file</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span
+                        className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                          logbook.status === "verified"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-yellow-100 text-yellow-800"
+                        }`}
+                      >
+                        {logbook.status === "verified"
+                          ? "Terverifikasi"
+                          : "Belum diverifikasi"}
                       </span>
-                    ) : (
-                      <span className="flex items-center text-sm text-yellow-600">
-                        <XCircle size={16} className="mr-1" /> Belum
-                        diverifikasi
-                      </span>
-                    )}
-                    <button
-                      onClick={() =>
-                        router.push(
-                          `/pembimbing/LogbookMagang/${logbook.id}?id=${selectedMahasiswa.mahasiswa._id}`
-                        )
-                      }
-                      className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-sm"
-                    >
-                      Review <ChevronRight size={16} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-500">
+                      {logbook.comment || (
+                        <span className="text-gray-400">
+                          Belum ada komentar
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex flex-col gap-2">
+                        <div className="relative">
+                          <input
+                            type="text"
+                            placeholder="Tambah komentar..."
+                            className="w-full px-3 py-1 border border-gray-300 rounded text-sm"
+                            value={commentInputs[logbook._id] || ""}
+                            onChange={(e) =>
+                              handleCommentChange(logbook._id, e.target.value)
+                            }
+                          />
+                        </div>
+                        <button
+                          onClick={() => submitComment(logbook._id)}
+                          disabled={submittingComment}
+                          className="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 disabled:opacity-50 flex items-center gap-1"
+                        >
+                          <MessageSquare size={12} />
+                          {submittingComment ? "Mengirim..." : "Kirim Komentar"}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         ) : (
           <div className="text-center py-12">

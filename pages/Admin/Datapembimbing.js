@@ -91,7 +91,8 @@ export default function Pembimbing() {
     });
   };
 
-  const fetchMahasiswa = async (pembimbingId) => {
+  // Tambahkan fungsi fetchMahasiswaBimbingan
+  const fetchMahasiswaBimbingan = async (pembimbingId) => {
     try {
       setIsLoading(true);
       const res = await axios.get(
@@ -102,9 +103,7 @@ export default function Pembimbing() {
       console.log("Response data:", res.data);
 
       // Pastikan response memiliki format yang benar
-      if (res.data && Array.isArray(res.data.mahasiswa)) {
-        setMahasiswaBimbingan(res.data.mahasiswa);
-      } else if (Array.isArray(res.data)) {
+      if (res.data && Array.isArray(res.data)) {
         setMahasiswaBimbingan(res.data);
       } else {
         console.error("Format data tidak valid:", res.data);
@@ -195,12 +194,15 @@ export default function Pembimbing() {
   };
 
   const toggleRowExpand = (id) => {
+    // Perbarui expandedRows dengan nilai yang baru
     setExpandedRows((prev) => ({
       ...prev,
-      [id]: !prev[id],
+      [id]: !prev[id], // Toggle ekspansi row
     }));
+
+    // Jika row belum diperluas, ambil data mahasiswa
     if (!expandedRows[id]) {
-      fetchMahasiswa(id);
+      fetchMahasiswaBimbingan(id);
     }
   };
 
@@ -410,7 +412,6 @@ export default function Pembimbing() {
                         </div>
                       </td>
                     </tr>
-
                     {expandedRows[item._id] && (
                       <tr>
                         <td colSpan={6} className="px-6 py-4 bg-gray-50">
@@ -472,9 +473,7 @@ export default function Pembimbing() {
                                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                                           {mhs.email || "-"}
                                         </td>
-                                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                                          {mhs.telepon || "-"}
-                                        </td>
+
                                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                                           {mhs.institusi}
                                         </td>
@@ -602,7 +601,7 @@ export default function Pembimbing() {
                           </div>
                         </td>
                       </tr>
-                    )}
+                    )}{" "}
                   </>
                 ))
               )}
