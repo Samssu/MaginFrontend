@@ -279,30 +279,54 @@ export default function Pembimbing() {
                                           </span>
                                         </td>
                                         <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500 flex gap-2">
-                                          <Link
-                                            href={`/pembimbing/LogbookMagang?id=${mhs._id}`}
-                                            className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
-                                            onClick={(e) => e.stopPropagation()}
+                                          <button
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              router.push(
+                                                `/pembimbing/LogbookMagang?id=${mhs._id}`
+                                              );
+                                            }}
+                                            className="flex items-center gap-1 px-3 py-1.5 bg-blue-100 text-blue-800 rounded-lg hover:bg-blue-200 transition-all shadow-sm border border-blue-200 text-sm font-medium"
                                           >
                                             <BookOpen size={14} />
-                                            Logbook
-                                          </Link>
-                                          <Link
-                                            href={`/pembimbing/LaporanAkhir?id=${mhs._id}`}
-                                            className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
-                                            onClick={(e) => e.stopPropagation()}
+                                            <span>Logbook</span>
+                                          </button>
+
+                                          <button
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              router.push(
+                                                `/pembimbing/LaporanAkhir?id=${mhs._id}`
+                                              );
+                                            }}
+                                            className="flex items-center gap-1 px-3 py-1.5 bg-green-100 text-green-800 rounded-lg hover:bg-green-200 transition-all shadow-sm border border-green-200 text-sm font-medium"
                                           >
                                             <FileText size={14} />
-                                            Laporan
-                                          </Link>
+                                            <span>Laporan</span>
+                                          </button>
+
                                           <button
-                                            className="text-blue-600 hover:text-blue-800"
                                             onClick={(e) => {
                                               e.stopPropagation();
                                               handleViewMahasiswaDetail(mhs);
                                             }}
+                                            className="flex items-center gap-1 px-3 py-1.5 bg-yellow-100 text-yellow-800 rounded-lg hover:bg-yellow-200 transition-all shadow-sm border border-yellow-200 text-sm font-medium"
                                           >
-                                            Detail
+                                            <svg
+                                              xmlns="http://www.w3.org/2000/svg"
+                                              className="h-4 w-4"
+                                              fill="none"
+                                              viewBox="0 0 24 24"
+                                              stroke="currentColor"
+                                            >
+                                              <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                              />
+                                            </svg>
+                                            <span>Detail</span>
                                           </button>
                                         </td>
                                       </tr>

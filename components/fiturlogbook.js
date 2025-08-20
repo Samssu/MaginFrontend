@@ -14,7 +14,6 @@ import {
 import Link from "next/link";
 import { jsPDF } from "jspdf";
 
-// Correct way to import jspdf-autotable
 let autoTable = require("jspdf-autotable");
 
 const API_BASE_URL =
@@ -328,6 +327,27 @@ export default function Logbook({
       fetchLogs();
     } catch {
       toast.error("Gagal menghapus logbook");
+    }
+  };
+
+  const handleSubmit = async (formData) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        `${API_BASE_URL}/api/logbook`,
+        {
+          kegiatan: formData.kegiatan,
+          deskripsi: formData.deskripsi,
+          tanggal: formData.tanggal,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      // ... rest of the code
+    } catch (error) {
+      // ... error handling
     }
   };
 
