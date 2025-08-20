@@ -591,10 +591,24 @@ export default function PembimbingLogbook() {
                       Laporan Terlampir
                     </h4>
                     <a
-                      href={`http://localhost:5000/uploads/logbooks/${selectedLogbook.report}`}
+                      href={`http://localhost:5000${
+                        selectedLogbook.report.startsWith("/") ? "" : "/"
+                      }${selectedLogbook.report}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        // Handle kemungkinan path yang salah
+                        const cleanPath = selectedLogbook.report.replace(
+                          /^\/+/,
+                          ""
+                        );
+                        window.open(
+                          `http://localhost:5000/${cleanPath}`,
+                          "_blank"
+                        );
+                      }}
                     >
                       <FileText size={16} />
                       <span>Download Laporan</span>
