@@ -19,6 +19,7 @@ import {
   Download,
   BookOpen,
 } from "lucide-react";
+import Head from "next/head";
 
 export default function DataLaporanAkhir() {
   const router = useRouter();
@@ -169,6 +170,9 @@ export default function DataLaporanAkhir() {
 
   return (
     <AdminLayout>
+      <Head>
+        <title>Data laporan Akhir | Kominfo Palembang</title>
+      </Head>
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
           <div className="p-3 rounded-lg bg-blue-50 text-blue-600">

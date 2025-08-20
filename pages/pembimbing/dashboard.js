@@ -36,21 +36,37 @@ export default function DashboardPembimbing() {
         }
         setUser(userData);
 
+        // Mengambil data mahasiswa bimbingan
         const mahasiswaRes = await axios.get(
           `/api/pembimbing/${userData.id}/mahasiswa`
         );
         const mahasiswa = mahasiswaRes.data;
 
+        // Hitung statistik
+        const sekarang = new Date();
+        const mahasiswaAktif = mahasiswa.filter((m) => {
+          if (!m.mulai || !m.selesai) return false;
+          const mulai = new Date(m.mulai);
+          const selesai = new Date(m.selesai);
+          return mulai <= sekarang && selesai >= sekarang;
+        });
+
+        const mahasiswaSelesai = mahasiswa.filter((m) => {
+          if (!m.selesai) return false;
+          const selesai = new Date(m.selesai);
+          return selesai < sekarang;
+        });
+
+        const totalLogbooks = mahasiswa.reduce(
+          (acc, curr) => acc + (curr.logbooks?.length || 0),
+          0
+        );
+
         setStats({
           totalPesertaMagang: mahasiswa.length,
-          aktif: mahasiswa.filter((m) => new Date(m.selesai) > new Date())
-            .length,
-          selesai: mahasiswa.filter((m) => new Date(m.selesai) <= new Date())
-            .length,
-          totalLogbookMagang: mahasiswa.reduce(
-            (acc, curr) => acc + (curr.logbooks?.length || 0),
-            0
-          ),
+          aktif: mahasiswaAktif.length,
+          selesai: mahasiswaSelesai.length,
+          totalLogbookMagang: totalLogbooks,
         });
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -94,32 +110,24 @@ export default function DashboardPembimbing() {
           icon={<Users size={24} />}
           title="Total Peserta Magang"
           value={stats.totalPesertaMagang}
-          trend="up"
-          percentage="12%"
           color="blue"
         />
         <StatCard
           icon={<Clock size={24} />}
           title="Sedang Magang"
           value={stats.aktif}
-          trend="up"
-          percentage="5%"
           color="green"
         />
         <StatCard
           icon={<Calendar size={24} />}
           title="Selesai"
           value={stats.selesai}
-          trend="down"
-          percentage="3%"
           color="purple"
         />
         <StatCard
           icon={<BookOpen size={24} />}
           title="Total Logbook Magang"
           value={stats.totalLogbookMagang}
-          trend="up"
-          percentage="24%"
           color="orange"
         />
       </div>
@@ -163,18 +171,13 @@ export default function DashboardPembimbing() {
   );
 }
 
-// StatCard Component with improved design
-const StatCard = ({ icon, title, value, trend, percentage, color }) => {
+// StatCard Component dengan desain yang disederhanakan (tanpa trend)
+const StatCard = ({ icon, title, value, color }) => {
   const colorClasses = {
     blue: "bg-blue-100 text-blue-600",
     green: "bg-green-100 text-green-600",
     purple: "bg-purple-100 text-purple-600",
     orange: "bg-orange-100 text-orange-600",
-  };
-
-  const trendClasses = {
-    up: "text-green-500",
-    down: "text-red-500",
   };
 
   return (
@@ -186,19 +189,11 @@ const StatCard = ({ icon, title, value, trend, percentage, color }) => {
         </div>
         <div className={`p-3 rounded-lg ${colorClasses[color]}`}>{icon}</div>
       </div>
-      {trend && percentage && (
-        <div className="mt-3 flex items-center">
-          <span className={`text-sm font-medium ${trendClasses[trend]}`}>
-            {trend === "up" ? "↑" : "↓"} {percentage}
-          </span>
-          <span className="text-xs text-gray-500 ml-1">vs bulan lalu</span>
-        </div>
-      )}
     </div>
   );
 };
 
-// QuickActionCard Component with improved design
+// QuickActionCard Component
 const QuickActionCard = ({ icon, title, description, onClick, color }) => {
   const colorClasses = {
     blue: "bg-blue-50 text-blue-600",

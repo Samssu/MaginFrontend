@@ -84,7 +84,7 @@ export default function Pembimbing() {
   return (
     <PembimbingLayout>
       <Head>
-        <title>Data Peserta | Kominfo Palembang</title>
+        <title>Laporan Akhir| Kominfo Palembang</title>
         <meta
           name="description"
           content="Kelola Laporan Akhir Kominfo Palembang"

@@ -330,15 +330,17 @@ export default function Logbook({
     }
   };
 
+  // Di dalam handleSubmit di fiturlogbook.js
   const handleSubmit = async (formData) => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
         `${API_BASE_URL}/api/logbook`,
         {
-          kegiatan: formData.kegiatan,
-          deskripsi: formData.deskripsi,
+          title: formData.kegiatan, // Pastikan mengirim title
+          content: formData.deskripsi,
           tanggal: formData.tanggal,
+          // ... data lainnya
         },
         {
           headers: { Authorization: `Bearer ${token}` },
