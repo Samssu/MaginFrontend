@@ -1463,7 +1463,7 @@ export default function DataPendaftaran() {
       )}
       {/* Action Modal */}
       {selectedAction && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-white bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
@@ -1547,7 +1547,7 @@ export default function DataPendaftaran() {
       )}
       {/* Pembimbing Modal */}
       {showPembimbingModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white bg-opacity-50">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4">
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
@@ -1665,7 +1665,7 @@ export default function DataPendaftaran() {
       )}
 
       {showCertificateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white bg-opacity-50">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4">
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
