@@ -139,7 +139,7 @@ export default function TabelRiwayat() {
     }
   };
 
-  const handleDownload = async (filename) => {
+  const handleDownload = async (filename, folder = "") => {
     if (!filename) {
       toast.error("File tidak tersedia");
       return;
@@ -147,27 +147,69 @@ export default function TabelRiwayat() {
 
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(
-        `http://localhost:5000/api/download/${filename}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          responseType: "blob",
-        }
-      );
+      let url = `http://localhost:5000/api/download/${filename}`;
 
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      if (folder) {
+        url = `http://localhost:5000/api/download/${folder}/${filename}`;
+      }
+
+      console.log("Download URL:", url);
+
+      const response = await axios.get(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/octet-stream",
+        },
+        responseType: "blob",
+      });
+
+      // Create blob URL
+      const blob = new Blob([response.data]);
+      const urlObject = window.URL.createObjectURL(blob);
+
+      // Create download link
       const link = document.createElement("a");
-      link.href = url;
+      link.href = urlObject;
       link.setAttribute("download", filename);
       document.body.appendChild(link);
-      link.click();
-      link.remove();
 
-      setTimeout(() => window.URL.revokeObjectURL(url), 100);
+      // Trigger download
+      link.click();
+
+      // Clean up
+      link.remove();
+      setTimeout(() => window.URL.revokeObjectURL(urlObject), 100);
+
+      toast.success("File berhasil diunduh");
     } catch (error) {
       console.error("Download error:", error);
-      toast.error("Gagal mengunduh file");
+      if (error.response?.status === 404) {
+        toast.error("File tidak ditemukan di server");
+      } else {
+        toast.error("Gagal mengunduh file");
+      }
     }
+  };
+
+  const previewLaporan = (filename) => {
+    if (!filename) {
+      toast.error("File laporan tidak tersedia");
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+    const url = `http://localhost:5000/uploads/laporan/${filename}`;
+
+    // Buka di tab baru untuk preview
+    window.open(url, "_blank");
+  };
+
+  const downloadLaporan = (filename) => {
+    if (!filename) {
+      toast.error("File laporan tidak tersedia");
+      return;
+    }
+    handleDownload(filename, "laporan");
   };
 
   // Di tabelriwayat.js, update handleLaporanUpload
@@ -203,7 +245,8 @@ export default function TabelRiwayat() {
       toast.success("Laporan akhir berhasil diupload");
       setShowLaporanModal(false);
       setLaporanFile(null);
-      fetchData();
+      setSelectedLaporan(null); // Reset selected laporan
+      fetchData(); // Refresh data
     } catch (error) {
       console.error("Upload error:", error);
       if (error.response?.status === 413) {
@@ -291,615 +334,785 @@ export default function TabelRiwayat() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {riwayat.map((item, index) => (
-                <>
-                  <tr
-                    key={item._id}
-                    className="hover:bg-gray-50 transition-colors cursor-pointer"
-                    onClick={() => toggleRowExpand(item._id)}
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {index + 1}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {item.nama}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="text-gray-400" size={16} />
-                        <span>
-                          {formatDate(item.mulai)} - {formatDate(item.selesai)}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            item.status === "disetujui"
-                              ? "bg-green-100 text-green-800"
-                              : item.status === "ditolak"
-                              ? "bg-red-100 text-red-800"
-                              : item.status === "perbaiki" ||
-                                item.status === "pending"
-                              ? "bg-yellow-100 text-yellow-800"
-                              : "bg-gray-100 text-gray-800"
-                          }`}
-                        >
-                          {getStatusIcon(item.status)}
-                          {item.status === "pending"
-                            ? "Menunggu Review"
-                            : item.status.charAt(0).toUpperCase() +
-                              item.status.slice(1)}
-                        </span>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleRowExpand(item._id);
-                          }}
-                          className="text-gray-400 hover:text-gray-600"
-                        >
-                          {expandedRow === item._id ? (
-                            <ChevronUp size={16} />
-                          ) : (
-                            <ChevronDown size={16} />
-                          )}
-                        </button>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex justify-end items-center gap-2">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (
+              {riwayat
+                .filter((item) => item !== null && item !== undefined)
+                .map((item, index) => (
+                  <>
+                    <tr
+                      key={item._id}
+                      className="hover:bg-gray-50 transition-colors cursor-pointer"
+                      onClick={() => toggleRowExpand(item._id)}
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {index + 1}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {item.nama}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="text-gray-400" size={16} />
+                          <span>
+                            {formatDate(item.mulai)} -{" "}
+                            {formatDate(item.selesai)}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                              item.status === "disetujui"
+                                ? "bg-green-100 text-green-800"
+                                : item.status === "ditolak"
+                                ? "bg-red-100 text-red-800"
+                                : item.status === "perbaiki" ||
+                                  item.status === "pending"
+                                ? "bg-yellow-100 text-yellow-800"
+                                : "bg-gray-100 text-gray-800"
+                            }`}
+                          >
+                            {getStatusIcon(item.status)}
+                            {item.status === "pending"
+                              ? "Menunggu Review"
+                              : item.status.charAt(0).toUpperCase() +
+                                item.status.slice(1)}
+                          </span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleRowExpand(item._id);
+                            }}
+                            className="text-gray-400 hover:text-gray-600"
+                          >
+                            {expandedRow === item._id ? (
+                              <ChevronUp size={16} />
+                            ) : (
+                              <ChevronDown size={16} />
+                            )}
+                          </button>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex justify-end items-center gap-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (
+                                item.status === "perbaiki" ||
+                                item.status === "pending" ||
+                                item.status === "ditolak"
+                              ) {
+                                handleEditClick(item);
+                              }
+                            }}
+                            className={`inline-flex items-center px-3 py-1 border text-xs font-medium rounded-md ${
                               item.status === "perbaiki" ||
                               item.status === "pending" ||
                               item.status === "ditolak"
-                            ) {
-                              handleEditClick(item);
+                                ? "border-blue-300 text-blue-700 bg-blue-50 hover:bg-blue-100"
+                                : "border-gray-300 text-gray-500 bg-gray-100 cursor-not-allowed"
+                            }`}
+                            disabled={
+                              !(
+                                item.status === "perbaiki" ||
+                                item.status === "pending" ||
+                                item.status === "ditolak"
+                              )
                             }
-                          }}
-                          className={`inline-flex items-center px-3 py-1 border text-xs font-medium rounded-md ${
-                            item.status === "perbaiki" ||
-                            item.status === "pending" ||
-                            item.status === "ditolak"
-                              ? "border-blue-300 text-blue-700 bg-blue-50 hover:bg-blue-100"
-                              : "border-gray-300 text-gray-500 bg-gray-100 cursor-not-allowed"
-                          }`}
-                          disabled={
-                            !(
-                              item.status === "perbaiki" ||
-                              item.status === "pending" ||
-                              item.status === "ditolak"
-                            )
-                          }
-                        >
-                          <Edit className="mr-1" size={14} />
-                          Edit
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                  {expandedRow === item._id && (
-                    <tr className="bg-gray-50">
-                      <td colSpan="5" className="px-6 py-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div>
-                            <h4 className="font-medium text-gray-700 mb-3 text-lg">
-                              Detail Pendaftaran
-                            </h4>
-                            <div className="space-y-3 text-sm">
-                              <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                  <p className="text-gray-500">Nama Lengkap</p>
-                                  <p className="font-medium">
-                                    {item.nama || "-"}
-                                  </p>
-                                </div>
-                                <div>
-                                  <p className="text-gray-500">Email</p>
-                                  <p className="font-medium">
-                                    {item.email || "-"}
-                                  </p>
-                                </div>
-                              </div>
-
-                              <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                  <p className="text-gray-500">
-                                    Tempat/Tanggal Lahir
-                                  </p>
-                                  <p className="font-medium">
-                                    {item.ttl || "-"} /{" "}
-                                    {formatDate(item.tanggalLahir)}
-                                  </p>
-                                </div>
-                                <div>
-                                  <p className="text-gray-500">Jenis Kelamin</p>
-                                  <p className="font-medium">
-                                    {item.jenisKelamin || "-"}
-                                  </p>
-                                </div>
-                              </div>
-
-                              <div>
-                                <p className="text-gray-500">Alamat</p>
-                                <p className="font-medium">
-                                  {item.alamat || "-"}
-                                </p>
-                              </div>
-
-                              <div>
-                                <p className="text-gray-500">No. HP</p>
-                                <p className="font-medium">
-                                  {item.noHp || "-"}
-                                </p>
-                              </div>
-
-                              <div className="border-t border-gray-200 pt-3 mt-3">
-                                <h5 className="font-medium text-gray-700 mb-2">
-                                  Pendidikan
-                                </h5>
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div>
-                                    <p className="text-gray-500">Institusi</p>
-                                    <p className="font-medium">
-                                      {item.institusi || "-"}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <p className="text-gray-500">
-                                      Program Studi
-                                    </p>
-                                    <p className="font-medium">
-                                      {item.prodi || "-"}
-                                    </p>
-                                  </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4 mt-2">
-                                  <div>
-                                    <p className="text-gray-500">Jenjang</p>
-                                    <p className="font-medium">
-                                      {item.jenjang || "-"}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <p className="text-gray-500">Semester</p>
-                                    <p className="font-medium">
-                                      {item.semester || "-"}
-                                    </p>
-                                  </div>
-                                </div>
-                                <div className="mt-2">
-                                  <p className="text-gray-500">IPK</p>
-                                  <p className="font-medium">
-                                    {item.ipk || "-"}
-                                  </p>
-                                </div>
-                              </div>
-
-                              <div className="border-t border-gray-200 pt-3 mt-3">
-                                <h5 className="font-medium text-gray-700 mb-2">
-                                  Magang
-                                </h5>
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div>
-                                    <p className="text-gray-500">Divisi</p>
-                                    <p className="font-medium">
-                                      {item.divisi || "-"}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <p className="text-gray-500">
-                                      Tujuan Magang
-                                    </p>
-                                    <p className="font-medium">
-                                      {item.tujuan || "-"}
-                                    </p>
-                                  </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4 mt-2">
-                                  <div>
-                                    <p className="text-gray-500">
-                                      Tanggal Mulai
-                                    </p>
-                                    <p className="font-medium">
-                                      {formatDate(item.mulai)}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <p className="text-gray-500">
-                                      Tanggal Selesai
-                                    </p>
-                                    <p className="font-medium">
-                                      {formatDate(item.selesai)}
-                                    </p>
-                                  </div>
-                                </div>
-                              </div>
-
-                              <div className="border-t border-gray-200 pt-3 mt-3">
-                                <h5 className="font-medium text-gray-700 mb-2">
-                                  Dokumen Pendaftaran
-                                </h5>
+                          >
+                            <Edit className="mr-1" size={14} />
+                            Edit
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                    {expandedRow === item._id && (
+                      <tr className="bg-gray-50">
+                        <td colSpan="5" className="px-6 py-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                              <h4 className="font-medium text-gray-700 mb-3 text-lg">
+                                Detail Pendaftaran
+                              </h4>
+                              <div className="space-y-3 text-sm">
                                 <div className="grid grid-cols-2 gap-4">
                                   <div>
                                     <p className="text-gray-500">
-                                      Surat Pengantar
+                                      Nama Lengkap
                                     </p>
-                                    {item.suratPengantar ? (
-                                      <button
-                                        onClick={() =>
-                                          handleDownload(item.suratPengantar)
-                                        }
-                                        className="text-blue-600 hover:text-blue-800 text-sm flex items-center"
-                                      >
-                                        <FileText className="mr-1" size={14} />
-                                        Unduh
-                                      </button>
-                                    ) : (
-                                      <p className="text-gray-400">-</p>
-                                    )}
-                                  </div>
-                                  <div>
-                                    <p className="text-gray-500">
-                                      Curriculum Vitae (CV)
+                                    <p className="font-medium">
+                                      {item.nama || "-"}
                                     </p>
-                                    {item.cv ? (
-                                      <button
-                                        onClick={() => handleDownload(item.cv)}
-                                        className="text-blue-600 hover:text-blue-800 text-sm flex items-center"
-                                      >
-                                        <FileText className="mr-1" size={14} />
-                                        Unduh
-                                      </button>
-                                    ) : (
-                                      <p className="text-gray-400">-</p>
-                                    )}
-                                  </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4 mt-2">
-                                  <div>
-                                    <p className="text-gray-500">Pas Foto</p>
-                                    {item.foto ? (
-                                      <button
-                                        onClick={() =>
-                                          handleDownload(item.foto)
-                                        }
-                                        className="text-blue-600 hover:text-blue-800 text-sm flex items-center"
-                                      >
-                                        <FileText className="mr-1" size={14} />
-                                        Unduh
-                                      </button>
-                                    ) : (
-                                      <p className="text-gray-400">-</p>
-                                    )}
                                   </div>
                                   <div>
-                                    <p className="text-gray-500">KTP/KTM</p>
-                                    {item.ktpAtauKtm ? (
-                                      <button
-                                        onClick={() =>
-                                          handleDownload(item.ktpAtauKtm)
-                                        }
-                                        className="text-blue-600 hover:text-blue-800 text-sm flex items-center"
-                                      >
-                                        <FileText className="mr-1" size={14} />
-                                        Unduh
-                                      </button>
-                                    ) : (
-                                      <p className="text-gray-400">-</p>
-                                    )}
-                                  </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4 mt-2">
-                                  <div>
-                                    <p className="text-gray-500">
-                                      Transkrip Nilai
+                                    <p className="text-gray-500">Email</p>
+                                    <p className="font-medium">
+                                      {item.email || "-"}
                                     </p>
-                                    {item.transkrip ? (
-                                      <button
-                                        onClick={() =>
-                                          handleDownload(item.transkrip)
-                                        }
-                                        className="text-blue-600 hover:text-blue-800 text-sm flex items-center"
-                                      >
-                                        <FileText className="mr-1" size={14} />
-                                        Unduh
-                                      </button>
-                                    ) : (
-                                      <p className="text-gray-400">-</p>
-                                    )}
-                                  </div>
-                                  <div>
-                                    <p className="text-gray-500">
-                                      Surat Rekomendasi
-                                    </p>
-                                    {item.rekomendasi ? (
-                                      <button
-                                        onClick={() =>
-                                          handleDownload(item.rekomendasi)
-                                        }
-                                        className="text-blue-600 hover:text-blue-800 text-sm flex items-center"
-                                      >
-                                        <FileText className="mr-1" size={14} />
-                                        Unduh
-                                      </button>
-                                    ) : (
-                                      <p className="text-gray-400">-</p>
-                                    )}
                                   </div>
                                 </div>
 
-                                {/* Ganti bagian pembimbing dengan: */}
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div>
+                                    <p className="text-gray-500">
+                                      Tempat/Tanggal Lahir
+                                    </p>
+                                    <p className="font-medium">
+                                      {item.ttl || "-"} /{" "}
+                                      {formatDate(item.tanggalLahir)}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <p className="text-gray-500">
+                                      Jenis Kelamin
+                                    </p>
+                                    <p className="font-medium">
+                                      {item.jenisKelamin || "-"}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <div>
+                                  <p className="text-gray-500">Alamat</p>
+                                  <p className="font-medium">
+                                    {item.alamat || "-"}
+                                  </p>
+                                </div>
+
+                                <div>
+                                  <p className="text-gray-500">No. HP</p>
+                                  <p className="font-medium">
+                                    {item.noHp || "-"}
+                                  </p>
+                                </div>
+
                                 <div className="border-t border-gray-200 pt-3 mt-3">
-                                  <h5 className="font-medium text-gray-700 mb-2 flex items-center gap-2">
-                                    <User className="text-gray-400" size={16} />
-                                    Pembimbing
+                                  <h5 className="font-medium text-gray-700 mb-2">
+                                    Pendidikan
                                   </h5>
-                                  {item.pembimbing ? (
-                                    <>
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                      <p className="text-gray-500">Institusi</p>
                                       <p className="font-medium">
-                                        {item.pembimbing.nama ||
-                                          `Pembimbing (ID: ${item.pembimbing})`}
+                                        {item.institusi || "-"}
                                       </p>
-                                      {item.pembimbing.divisi && (
-                                        <p className="text-sm text-gray-500 mt-1">
-                                          Divisi: {item.pembimbing.divisi}
-                                        </p>
-                                      )}
-                                    </>
-                                  ) : (
-                                    <p className="text-gray-500">
-                                      Belum ditentukan
+                                    </div>
+                                    <div>
+                                      <p className="text-gray-500">
+                                        Program Studi
+                                      </p>
+                                      <p className="font-medium">
+                                        {item.prodi || "-"}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-4 mt-2">
+                                    <div>
+                                      <p className="text-gray-500">Jenjang</p>
+                                      <p className="font-medium">
+                                        {item.jenjang || "-"}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <p className="text-gray-500">Semester</p>
+                                      <p className="font-medium">
+                                        {item.semester || "-"}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="mt-2">
+                                    <p className="text-gray-500">IPK</p>
+                                    <p className="font-medium">
+                                      {item.ipk || "-"}
                                     </p>
-                                  )}
+                                  </div>
+                                </div>
+
+                                <div className="border-t border-gray-200 pt-3 mt-3">
+                                  <h5 className="font-medium text-gray-700 mb-2">
+                                    Magang
+                                  </h5>
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                      <p className="text-gray-500">Divisi</p>
+                                      <p className="font-medium">
+                                        {item.divisi || "-"}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <p className="text-gray-500">
+                                        Tujuan Magang
+                                      </p>
+                                      <p className="font-medium">
+                                        {item.tujuan || "-"}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-4 mt-2">
+                                    <div>
+                                      <p className="text-gray-500">
+                                        Tanggal Mulai
+                                      </p>
+                                      <p className="font-medium">
+                                        {formatDate(item.mulai)}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <p className="text-gray-500">
+                                        Tanggal Selesai
+                                      </p>
+                                      <p className="font-medium">
+                                        {formatDate(item.selesai)}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="border-t border-gray-200 pt-3 mt-3">
+                                  <h5 className="font-medium text-gray-700 mb-2">
+                                    Dokumen Pendaftaran
+                                  </h5>
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                      <p className="text-gray-500">
+                                        Surat Pengantar
+                                      </p>
+                                      {item.suratPengantar ? (
+                                        <button
+                                          onClick={() =>
+                                            handleDownload(item.suratPengantar)
+                                          }
+                                          className="text-blue-600 hover:text-blue-800 text-sm flex items-center"
+                                        >
+                                          <FileText
+                                            className="mr-1"
+                                            size={14}
+                                          />
+                                          Unduh
+                                        </button>
+                                      ) : (
+                                        <p className="text-gray-400">-</p>
+                                      )}
+                                    </div>
+                                    <div>
+                                      <p className="text-gray-500">
+                                        Curriculum Vitae (CV)
+                                      </p>
+                                      {item.cv ? (
+                                        <button
+                                          onClick={() =>
+                                            handleDownload(item.cv)
+                                          }
+                                          className="text-blue-600 hover:text-blue-800 text-sm flex items-center"
+                                        >
+                                          <FileText
+                                            className="mr-1"
+                                            size={14}
+                                          />
+                                          Unduh
+                                        </button>
+                                      ) : (
+                                        <p className="text-gray-400">-</p>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-4 mt-2">
+                                    <div>
+                                      <p className="text-gray-500">Pas Foto</p>
+                                      {item.foto ? (
+                                        <button
+                                          onClick={() =>
+                                            handleDownload(item.foto)
+                                          }
+                                          className="text-blue-600 hover:text-blue-800 text-sm flex items-center"
+                                        >
+                                          <FileText
+                                            className="mr-1"
+                                            size={14}
+                                          />
+                                          Unduh
+                                        </button>
+                                      ) : (
+                                        <p className="text-gray-400">-</p>
+                                      )}
+                                    </div>
+                                    <div>
+                                      <p className="text-gray-500">KTP/KTM</p>
+                                      {item.ktpAtauKtm ? (
+                                        <button
+                                          onClick={() =>
+                                            handleDownload(item.ktpAtauKtm)
+                                          }
+                                          className="text-blue-600 hover:text-blue-800 text-sm flex items-center"
+                                        >
+                                          <FileText
+                                            className="mr-1"
+                                            size={14}
+                                          />
+                                          Unduh
+                                        </button>
+                                      ) : (
+                                        <p className="text-gray-400">-</p>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-4 mt-2">
+                                    <div>
+                                      <p className="text-gray-500">
+                                        Transkrip Nilai
+                                      </p>
+                                      {item.transkrip ? (
+                                        <button
+                                          onClick={() =>
+                                            handleDownload(item.transkrip)
+                                          }
+                                          className="text-blue-600 hover:text-blue-800 text-sm flex items-center"
+                                        >
+                                          <FileText
+                                            className="mr-1"
+                                            size={14}
+                                          />
+                                          Unduh
+                                        </button>
+                                      ) : (
+                                        <p className="text-gray-400">-</p>
+                                      )}
+                                    </div>
+                                    <div>
+                                      <p className="text-gray-500">
+                                        Surat Rekomendasi
+                                      </p>
+                                      {item.rekomendasi ? (
+                                        <button
+                                          onClick={() =>
+                                            handleDownload(item.rekomendasi)
+                                          }
+                                          className="text-blue-600 hover:text-blue-800 text-sm flex items-center"
+                                        >
+                                          <FileText
+                                            className="mr-1"
+                                            size={14}
+                                          />
+                                          Unduh
+                                        </button>
+                                      ) : (
+                                        <p className="text-gray-400">-</p>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {/* Ganti bagian pembimbing dengan: */}
+                                  <div className="border-t border-gray-200 pt-3 mt-3">
+                                    <h5 className="font-medium text-gray-700 mb-2 flex items-center gap-2">
+                                      <User
+                                        className="text-gray-400"
+                                        size={16}
+                                      />
+                                      Pembimbing
+                                    </h5>
+                                    {item.pembimbing ? (
+                                      <>
+                                        <p className="font-medium">
+                                          {item.pembimbing.nama ||
+                                            `Pembimbing (ID: ${item.pembimbing})`}
+                                        </p>
+                                        {item.pembimbing.divisi && (
+                                          <p className="text-sm text-gray-500 mt-1">
+                                            Divisi: {item.pembimbing.divisi}
+                                          </p>
+                                        )}
+                                      </>
+                                    ) : (
+                                      <p className="text-gray-500">
+                                        Belum ditentukan
+                                      </p>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                             </div>
-                          </div>
 
-                          <div>
-                            <div className="mb-6">
-                              <h4 className="font-medium text-gray-700 mb-2 flex items-center gap-1">
-                                {item.status === "disetujui" && (
-                                  <CheckCircle
-                                    className="text-green-500"
-                                    size={16}
-                                  />
-                                )}
-                                {item.status === "ditolak" && (
-                                  <X className="text-red-500" size={16} />
-                                )}
-                                {item.status === "perbaiki" && (
-                                  <AlertTriangle
-                                    className="text-yellow-500"
-                                    size={16}
-                                  />
-                                )}
-                                {item.status === "pending" && (
-                                  <AlertCircle
-                                    className="text-gray-500"
-                                    size={16}
-                                  />
-                                )}
-                                Informasi Status
-                              </h4>
+                            <div>
+                              <div className="mb-6">
+                                <h4 className="font-medium text-gray-700 mb-2 flex items-center gap-1">
+                                  {item.status === "disetujui" && (
+                                    <CheckCircle
+                                      className="text-green-500"
+                                      size={16}
+                                    />
+                                  )}
+                                  {item.status === "ditolak" && (
+                                    <X className="text-red-500" size={16} />
+                                  )}
+                                  {item.status === "perbaiki" && (
+                                    <AlertTriangle
+                                      className="text-yellow-500"
+                                      size={16}
+                                    />
+                                  )}
+                                  {item.status === "pending" && (
+                                    <AlertCircle
+                                      className="text-gray-500"
+                                      size={16}
+                                    />
+                                  )}
+                                  Informasi Status
+                                </h4>
 
-                              <div
-                                className={`p-3 rounded-lg ${
-                                  item.status === "disetujui"
-                                    ? "bg-green-50 border border-green-200"
-                                    : item.status === "ditolak"
-                                    ? "bg-red-50 border border-red-200"
-                                    : item.status === "perbaiki"
-                                    ? "bg-yellow-50 border border-yellow-200"
-                                    : "bg-gray-50 border border-gray-200"
-                                }`}
-                              >
-                                {item.status === "disetujui" && (
-                                  <>
-                                    <p className="font-medium text-green-700">
-                                      Pendaftaran Anda telah disetujui!
-                                    </p>
-                                    <p className="text-green-600 mt-1">
-                                      Selamat! Pendaftaran magang Anda telah
-                                      diterima. Silakan unduh surat balasan
-                                      resmi di atas.
-                                    </p>
+                                <div
+                                  className={`p-3 rounded-lg ${
+                                    item.status === "disetujui"
+                                      ? "bg-green-50 border border-green-200"
+                                      : item.status === "ditolak"
+                                      ? "bg-red-50 border border-red-200"
+                                      : item.status === "perbaiki"
+                                      ? "bg-yellow-50 border border-yellow-200"
+                                      : "bg-gray-50 border border-gray-200"
+                                  }`}
+                                >
+                                  {item.status === "disetujui" && (
+                                    <>
+                                      <p className="font-medium text-green-700">
+                                        Pendaftaran Anda telah disetujui!
+                                      </p>
+                                      <p className="text-green-600 mt-1">
+                                        Selamat! Pendaftaran magang Anda telah
+                                        diterima. Silakan unduh surat balasan
+                                        resmi di atas.
+                                      </p>
 
-                                    {!item.laporanAkhir && (
-                                      <div className="mt-4">
-                                        <button
-                                          onClick={() => {
-                                            setSelectedLaporan(null);
-                                            setShowLaporanModal(true);
-                                          }}
-                                          className="inline-flex items-center px-3 py-1 border border-blue-300 text-xs font-medium rounded-md text-blue-700 bg-white hover:bg-blue-50"
-                                        >
-                                          <Upload className="mr-1" size={12} />
-                                          Kirim Laporan Akhir
-                                        </button>
-                                        <p className="text-xs text-gray-500 mt-1">
-                                          Anda hanya bisa mengirim laporan akhir
-                                          sekali. Pastikan file sudah benar
-                                          sebelum mengupload.
-                                        </p>
-                                      </div>
-                                    )}
-                                  </>
-                                )}
+                                      {!item.laporanAkhir && (
+                                        <div className="mt-4">
+                                          <button
+                                            onClick={() => {
+                                              setSelectedLaporan(item); // ← Simpan data item yang dipilih
+                                              setShowLaporanModal(true);
+                                            }}
+                                            className="inline-flex items-center px-3 py-1 border border-blue-300 text-xs font-medium rounded-md text-blue-700 bg-white hover:bg-blue-50"
+                                          >
+                                            <Upload
+                                              className="mr-1"
+                                              size={12}
+                                            />
+                                            Kirim Laporan Akhir
+                                          </button>
+                                          <p className="text-xs text-gray-500 mt-1">
+                                            Anda hanya bisa mengirim laporan
+                                            akhir sekali. Pastikan file sudah
+                                            benar sebelum mengupload.
+                                          </p>
+                                        </div>
+                                      )}
+                                    </>
+                                  )}
 
-                                {/* Informasi Status */}
-                                {item.status === "disetujui" && (
-                                  <div className="border-t border-gray-200 pt-4 mt-4">
-                                    <h4 className="font-medium text-gray-700 mb-3">
-                                      Surat Balasan
-                                    </h4>
-                                    <button
-                                      onClick={() =>
-                                        handleDownload(
-                                          selectedDetail.suratBalasan
-                                        )
-                                      }
-                                      className="flex items-center text-blue-600 hover:text-blue-800"
-                                    >
-                                      <FileText className="mr-1" size={14} />
-                                      Unduh Surat Balasan
-                                    </button>
-                                    <p className="text-xs text-gray-500 mt-2">
-                                      Surat Balasan tersedia jika status sudah
-                                      disetujui
-                                    </p>
-                                  </div>
-                                )}
-
-                                {item.status === "disetujui" &&
-                                  item.certificate && (
+                                  {/* Informasi Status - SURAT BALASAN */}
+                                  {item.status === "disetujui" && (
                                     <div className="border-t border-gray-200 pt-4 mt-4">
                                       <h4 className="font-medium text-gray-700 mb-3">
-                                        Sertifikat Magang
+                                        Surat Balasan
                                       </h4>
-                                      <button
-                                        onClick={() =>
-                                          handleDownload(item.certificate)
-                                        }
-                                        className="flex items-center text-blue-600 hover:text-blue-800 text-sm"
-                                      >
-                                        <FileText className="mr-1" size={14} />
-                                        Unduh Sertifikat
-                                      </button>
+
+                                      {item.suratBalasan ? (
+                                        <>
+                                          {/* Tombol Unduh Surat Balasan */}
+                                          <div className="mb-3">
+                                            <button
+                                              onClick={() =>
+                                                handleDownload(
+                                                  item.suratBalasan
+                                                )
+                                              }
+                                              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                                            >
+                                              <FileText size={16} />
+                                              Unduh Surat Balasan
+                                            </button>
+                                          </div>
+
+                                          {/* Info Surat Balasan */}
+                                          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                              <div>
+                                                <p className="text-sm font-medium text-gray-600">
+                                                  Nama File:
+                                                </p>
+                                                <p className="text-sm text-gray-800 font-mono">
+                                                  {item.suratBalasan}
+                                                </p>
+                                              </div>
+                                              <div>
+                                                <p className="text-sm font-medium text-gray-600">
+                                                  Status:
+                                                </p>
+                                                <p className="text-sm text-green-600 font-medium">
+                                                  ✅ Tersedia
+                                                </p>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </>
+                                      ) : (
+                                        <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                                          <div className="flex items-center gap-3">
+                                            <AlertCircle
+                                              className="text-yellow-600"
+                                              size={20}
+                                            />
+                                            <div>
+                                              <p className="text-sm font-medium text-yellow-800">
+                                                Surat Balasan Belum Tersedia
+                                              </p>
+                                              <p className="text-sm text-yellow-700">
+                                                Admin belum mengupload surat
+                                                balasan untuk pendaftaran ini.
+                                                Silakan hubungi administrator.
+                                              </p>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      )}
+
                                       <p className="text-xs text-gray-500 mt-2">
-                                        Sertifikat resmi magang dari Kominfo
+                                        Surat balasan resmi dari Kominfo
                                         Palembang
                                       </p>
                                     </div>
                                   )}
-                                {item.status === "disetujui" &&
-                                  !item.certificate && (
-                                    <div className="border-t border-gray-200 pt-4 mt-4">
-                                      <h4 className="font-medium text-gray-700 mb-3">
-                                        Sertifikat Magang
-                                      </h4>
-                                      <button
-                                        disabled
-                                        className="flex items-center text-gray-400 text-sm cursor-not-allowed"
-                                      >
-                                        <FileText className="mr-1" size={14} />
-                                        Sertifikat Belum Tersedia
-                                      </button>
-                                      <p className="text-xs text-gray-500 mt-2">
-                                        Sertifikat akan tersedia setelah admin
-                                        menguploadnya
-                                      </p>
-                                    </div>
-                                  )}
-                                {item.status === "ditolak" && (
-                                  <>
-                                    <p className="font-medium text-red-700">
-                                      Pendaftaran Anda ditolak
-                                    </p>
-                                    {item.komentar && (
-                                      <>
-                                        <p className="text-red-600 mt-1">
-                                          Alasan penolakan:
-                                        </p>
-                                        <p className="text-red-600 font-medium">
-                                          {item.komentar}
-                                        </p>
-                                      </>
-                                    )}
-                                    <p className="text-red-600 mt-2">
-                                      Anda dapat mengedit pendaftaran dan
-                                      mengajukan kembali setelah memperbaiki
-                                      masalah yang disebutkan.
-                                    </p>
-                                  </>
-                                )}
-                                {item.status === "perbaiki" && (
-                                  <>
-                                    <p className="font-medium text-yellow-700">
-                                      Perlu Perbaikan
-                                    </p>
-                                    {item.komentar && (
-                                      <>
-                                        <p className="text-yellow-600 mt-1">
-                                          Permintaan perbaikan:
-                                        </p>
-                                        <p className="text-yellow-600 font-medium">
-                                          {item.komentar}
-                                        </p>
-                                      </>
-                                    )}
-                                    <p className="text-yellow-600 mt-2">
-                                      Silakan perbaiki data dan submit. Status
-                                      akan berubah menjadi pending setelah
-                                      diperbaiki.
-                                    </p>
-                                    <button
-                                      onClick={() => handleEditClick(item)}
-                                      className="mt-3 inline-flex items-center px-3 py-1 border border-yellow-300 text-xs font-medium rounded-md text-yellow-700 bg-white hover:bg-yellow-50"
-                                    >
-                                      <Edit className="mr-1" size={12} />
-                                      Perbaiki Data
-                                    </button>
-                                  </>
-                                )}
-                                {item.status === "pending" && (
-                                  <>
-                                    <p className="font-medium text-yellow-700">
-                                      Pendaftaran dalam proses review
-                                    </p>
-                                    <p className="text-yellow-600 mt-1">
-                                      Pendaftaran Anda sedang dalam proses
-                                      peninjauan oleh admin. Harap tunggu
-                                      pemberitahuan lebih lanjut.
-                                    </p>
-                                  </>
-                                )}
-                              </div>
-                            </div>
 
-                            {item.status === "disetujui" &&
-                              item.laporanAkhir && (
-                                <div className="border-t border-gray-200 pt-4">
-                                  <h4 className="font-medium text-gray-700 mb-3">
-                                    Laporan Akhir
-                                  </h4>
-                                  <div className="flex items-center gap-3">
-                                    <button
-                                      onClick={() =>
-                                        handleDownload(item.laporanAkhir)
-                                      }
-                                      className="flex items-center text-blue-600 hover:text-blue-800 text-sm"
-                                    >
-                                      <FileText className="mr-1" size={14} />
-                                      Unduh Laporan
-                                    </button>
-                                    <button
-                                      onClick={() =>
-                                        previewLaporan(item.laporanAkhir)
-                                      }
-                                      className="flex items-center text-gray-600 hover:text-gray-800 text-sm"
-                                    >
-                                      <Eye className="mr-1" size={14} />
-                                      Preview
-                                    </button>
-                                  </div>
-                                  <p className="text-xs text-gray-500 mt-2">
-                                    Laporan akhir telah dikirim pada:{" "}
-                                    {formatDate(item.laporanUploadDate)}
-                                  </p>
+                                  {item.status === "disetujui" &&
+                                    item.certificate && (
+                                      <div className="border-t border-gray-200 pt-4 mt-4">
+                                        <h4 className="font-medium text-gray-700 mb-3">
+                                          Sertifikat Magang
+                                        </h4>
+
+                                        {/* Tombol Unduh Sertifikat */}
+                                        <div className="mb-3">
+                                          <button
+                                            onClick={() =>
+                                              handleDownload(item.certificate)
+                                            }
+                                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                                          >
+                                            <Download size={16} />
+                                            Unduh Sertifikat
+                                          </button>
+                                        </div>
+
+                                        {/* Info Sertifikat */}
+                                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            <div className="md:col-span-2">
+                                              <p className="text-sm font-medium text-gray-600">
+                                                Status:
+                                              </p>
+                                              <p className="text-sm text-green-600 font-medium">
+                                                ✅ Sertifikat tersedia dan dapat
+                                                diunduh
+                                              </p>
+                                            </div>
+                                          </div>
+                                        </div>
+
+                                        <p className="text-xs text-gray-500 mt-2">
+                                          Sertifikat resmi magang dari Kominfo
+                                          Palembang
+                                        </p>
+                                      </div>
+                                    )}
+                                  {item.status === "disetujui" &&
+                                    !item.certificate && (
+                                      <div className="border-t border-gray-200 pt-4 mt-4">
+                                        <h4 className="font-medium text-gray-700 mb-3">
+                                          Sertifikat Magang
+                                        </h4>
+                                        <button
+                                          disabled
+                                          className="flex items-center text-gray-400 text-sm cursor-not-allowed"
+                                        >
+                                          <FileText
+                                            className="mr-1"
+                                            size={14}
+                                          />
+                                          Sertifikat Belum Tersedia
+                                        </button>
+                                        <p className="text-xs text-gray-500 mt-2">
+                                          Sertifikat akan tersedia setelah admin
+                                          menguploadnya
+                                        </p>
+                                      </div>
+                                    )}
+                                  {item.status === "ditolak" && (
+                                    <>
+                                      <p className="font-medium text-red-700">
+                                        Pendaftaran Anda ditolak
+                                      </p>
+                                      {item.komentar && (
+                                        <>
+                                          <p className="text-red-600 mt-1">
+                                            Alasan penolakan:
+                                          </p>
+                                          <p className="text-red-600 font-medium">
+                                            {item.komentar}
+                                          </p>
+                                        </>
+                                      )}
+                                      <p className="text-red-600 mt-2">
+                                        Anda dapat mengedit pendaftaran dan
+                                        mengajukan kembali setelah memperbaiki
+                                        masalah yang disebutkan.
+                                      </p>
+                                    </>
+                                  )}
+                                  {item.status === "perbaiki" && (
+                                    <>
+                                      <p className="font-medium text-yellow-700">
+                                        Perlu Perbaikan
+                                      </p>
+                                      {item.komentar && (
+                                        <>
+                                          <p className="text-yellow-600 mt-1">
+                                            Permintaan perbaikan:
+                                          </p>
+                                          <p className="text-yellow-600 font-medium">
+                                            {item.komentar}
+                                          </p>
+                                        </>
+                                      )}
+                                      <p className="text-yellow-600 mt-2">
+                                        Silakan perbaiki data dan submit. Status
+                                        akan berubah menjadi pending setelah
+                                        diperbaiki.
+                                      </p>
+                                      <button
+                                        onClick={() => handleEditClick(item)}
+                                        className="mt-3 inline-flex items-center px-3 py-1 border border-yellow-300 text-xs font-medium rounded-md text-yellow-700 bg-white hover:bg-yellow-50"
+                                      >
+                                        <Edit className="mr-1" size={12} />
+                                        Perbaiki Data
+                                      </button>
+                                    </>
+                                  )}
+                                  {item.status === "pending" && (
+                                    <>
+                                      <p className="font-medium text-yellow-700">
+                                        Pendaftaran dalam proses review
+                                      </p>
+                                      <p className="text-yellow-600 mt-1">
+                                        Pendaftaran Anda sedang dalam proses
+                                        peninjauan oleh admin. Harap tunggu
+                                        pemberitahuan lebih lanjut.
+                                      </p>
+                                    </>
+                                  )}
                                 </div>
-                              )}
+                              </div>
+
+                              {item.status === "disetujui" &&
+                                item.laporanAkhir && (
+                                  <div className="border-t border-gray-200 pt-4">
+                                    <h4 className="font-medium text-gray-700 mb-3">
+                                      Laporan Akhir
+                                    </h4>
+
+                                    {/* Tombol Lihat Laporan Akhir */}
+                                    <div className="mb-3">
+                                      <button
+                                        onClick={() =>
+                                          previewLaporan(item.laporanAkhir)
+                                        }
+                                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                                      >
+                                        <Eye size={16} />
+                                        Lihat Laporan Akhir
+                                      </button>
+                                    </div>
+
+                                    {/* Info File */}
+                                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        <div>
+                                          <p className="text-sm font-medium text-gray-600">
+                                            Nama File:
+                                          </p>
+                                          <p className="text-sm text-gray-800 font-mono">
+                                            {item.laporanAkhir}
+                                          </p>
+                                        </div>
+
+                                        <div>
+                                          <p className="text-sm font-medium text-gray-600">
+                                            Diupload pada:
+                                          </p>
+                                          <p className="text-sm text-gray-800">
+                                            {formatDate(item.laporanUploadDate)}
+                                          </p>
+                                        </div>
+
+                                        <div>
+                                          <p className="text-sm font-medium text-gray-600">
+                                            Status Verifikasi:
+                                          </p>
+                                          <p
+                                            className={`text-sm font-medium ${
+                                              item.laporanVerified
+                                                ? "text-green-600"
+                                                : "text-yellow-600"
+                                            }`}
+                                          >
+                                            {item.laporanVerified ? (
+                                              <span className="flex items-center gap-1">
+                                                <CheckCircle size={14} />
+                                                Terverifikasi
+                                              </span>
+                                            ) : (
+                                              <span className="flex items-center gap-1">
+                                                <AlertCircle size={14} />
+                                                Menunggu Verifikasi
+                                              </span>
+                                            )}
+                                          </p>
+                                        </div>
+
+                                        <div>
+                                          <p className="text-sm font-medium text-gray-600">
+                                            Ukuran File:
+                                          </p>
+                                          <p className="text-sm text-gray-800">
+                                            {item.laporanAkhir.includes(".pdf")
+                                              ? "PDF Document"
+                                              : item.laporanAkhir.includes(
+                                                  ".doc"
+                                                )
+                                              ? "Word Document"
+                                              : "Document File"}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    {!item.laporanVerified && (
+                                      <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                        <p className="text-sm text-yellow-700 flex items-center gap-2">
+                                          <AlertTriangle size={14} />
+                                          Laporan Anda sedang dalam proses
+                                          verifikasi oleh admin. Anda akan
+                                          menerima pemberitahuan setelah
+                                          diverifikasi.
+                                        </p>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                            </div>
                           </div>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                </>
-              ))}
+                        </td>
+                      </tr>
+                    )}
+                  </>
+                ))}
             </tbody>
           </table>
         </div>
@@ -925,11 +1138,11 @@ export default function TabelRiwayat() {
                     type="file"
                     onChange={(e) => setLaporanFile(e.target.files[0])}
                     className="block w-full text-sm text-gray-500
-              file:mr-4 file:py-2 file:px-4
-              file:rounded-md file:border-0
-              file:text-sm file:font-semibold
-              file:bg-blue-50 file:text-blue-700
-              hover:file:bg-blue-100"
+                file:mr-4 file:py-2 file:px-4
+                file:rounded-md file:border-0
+                file:text-sm file:font-semibold
+                file:bg-blue-50 file:text-blue-700
+                hover:file:bg-blue-100"
                     accept=".pdf,.doc,.docx"
                   />
                   <p className="mt-1 text-xs text-gray-500">
@@ -938,15 +1151,18 @@ export default function TabelRiwayat() {
                 </div>
                 <div className="flex justify-end space-x-3 pt-4">
                   <button
-                    onClick={() => setShowLaporanModal(false)}
+                    onClick={() => {
+                      setShowLaporanModal(false);
+                      setLaporanFile(null);
+                      setSelectedLaporan(null);
+                    }}
                     className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
                   >
                     Batal
                   </button>
                   <button
-                    onClick={(e) =>
+                    onClick={() =>
                       handleLaporanUpload(
-                        e,
                         selectedLaporan?._id || editFormData._id
                       )
                     }

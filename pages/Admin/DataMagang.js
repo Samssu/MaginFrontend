@@ -5,6 +5,7 @@ import axios from "axios";
 import AdminLayout from "../../components/layouts/AdminLayouts";
 import { toast } from "react-toastify";
 import Head from "next/head";
+import * as XLSX from "xlsx";
 
 export default function DataPendaftaran() {
   // State management
@@ -46,6 +47,7 @@ export default function DataPendaftaran() {
   const [certificateFile, setCertificateFile] = useState(null);
   const [selectedCertificatePendaftar, setSelectedCertificatePendaftar] =
     useState(null);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   // Calculate total pages
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
@@ -167,9 +169,17 @@ export default function DataPendaftaran() {
     try {
       setIsLoading(true);
 
-      // Handle file upload if approving
+      // Handle file upload if approving - PASTIKAN INI DIEKSEKUSI
       let fileName = null;
-      if (selectedAction.action === "disetujui" && fileBalasan) {
+      if (selectedAction.action === "disetujui") {
+        if (!fileBalasan) {
+          toast.error("Surat balasan wajib diunggah!", {
+            position: "bottom-right",
+          });
+          setIsLoading(false);
+          return;
+        }
+
         const formData = new FormData();
         formData.append("file", fileBalasan);
         const uploadRes = await axios.post(
@@ -183,7 +193,7 @@ export default function DataPendaftaran() {
       const payload = {
         status: selectedAction.action,
         ...(komentar && { komentar }),
-        ...(fileName && { suratBalasan: fileName }),
+        ...(fileName && { suratBalasan: fileName }), // Pastikan ini terkirim
       };
 
       await axios.patch(
@@ -356,6 +366,284 @@ export default function DataPendaftaran() {
     }
   };
 
+  // Function to download Excel report
+  // Function to download Excel report
+  const downloadExcelReport = async () => {
+    try {
+      setIsDownloading(true);
+
+      // Get all data for the report
+      const response = await axios.get("http://localhost:5000/api/pendaftaran");
+      const allData = response.data;
+
+      // Format data for Excel
+      const formattedData = allData.map((item) => {
+        // Get pembimbing name if exists
+        const pembimbingName = item.pembimbing
+          ? getPembimbingName(item.pembimbing)
+          : "Belum ada pembimbing";
+
+        return {
+          ID: item._id || "",
+          Email: item.email || "",
+          Nama: item.nama || "",
+          TTL: item.ttl || "",
+          "Tanggal Lahir": item.tanggalLahir
+            ? new Date(item.tanggalLahir).toLocaleDateString("id-ID")
+            : "",
+          "Jenis Kelamin": item.jenisKelamin || "",
+          Alamat: item.alamat || "",
+          "No HP": item.telepon || "",
+          Institusi: item.institusi || "",
+          "Program Studi": item.prodi || "",
+          Jenjang: item.jenjang || "",
+          Semester: item.semester || "",
+          IPK: item.ipk || "",
+          "Mulai Magang": item.mulai
+            ? new Date(item.mulai).toLocaleDateString("id-ID")
+            : "",
+          "Selesai Magang": item.selesai
+            ? new Date(item.selesai).toLocaleDateString("id-ID")
+            : "",
+          "Tujuan Magang": item.tujuan || "",
+          Divisi: item.divisi || "",
+          "Surat Pengantar": item.suratPengantar
+            ? `http://localhost:5000/uploads/${item.suratPengantar}`
+            : "",
+          CV: item.cv ? `http://localhost:5000/uploads/${item.cv}` : "",
+          Foto: item.foto ? `http://localhost:5000/uploads/${item.foto}` : "",
+          "KTP/KTM": item.ktpAtauKtm
+            ? `http://localhost:5000/uploads/${item.ktpAtauKtm}`
+            : "",
+          "Transkrip Nilai": item.transkrip
+            ? `http://localhost:5000/uploads/${item.transkrip}`
+            : "",
+          "Surat Rekomendasi": item.rekomendasi
+            ? `http://localhost:5000/uploads/${item.rekomendasi}`
+            : "",
+          Komentar: item.komentar || "",
+          Status: item.status || "pending",
+          Logbooks: item.logbooks ? JSON.stringify(item.logbooks) : "",
+          Notifications: item.notifications
+            ? JSON.stringify(item.notifications)
+            : "",
+          "Tanggal Upload Sertifikat": item.certificateUploadDate
+            ? new Date(item.certificateUploadDate).toLocaleDateString("id-ID")
+            : "",
+          "Dibuat Pada": item.createdAt
+            ? new Date(item.createdAt).toLocaleDateString("id-ID")
+            : "",
+          "Diperbarui Pada": item.updatedAt
+            ? new Date(item.updatedAt).toLocaleDateString("id-ID")
+            : "",
+          Versi: item.__v || "0",
+          Pembimbing: pembimbingName,
+          Sertifikat: item.certificate
+            ? `http://localhost:5000/uploads/${item.certificate}`
+            : "",
+        };
+      });
+
+      // Create workbook and worksheet
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(formattedData);
+
+      // Set column widths
+      const colWidths = [
+        { wch: 25 }, // ID
+        { wch: 25 }, // Email
+        { wch: 25 }, // Nama
+        { wch: 25 }, // TTL
+        { wch: 15 }, // Tanggal Lahir
+        { wch: 15 }, // Jenis Kelamin
+        { wch: 30 }, // Alamat
+        { wch: 15 }, // No HP
+        { wch: 25 }, // Institusi
+        { wch: 20 }, // Program Studi
+        { wch: 10 }, // Jenjang
+        { wch: 10 }, // Semester
+        { wch: 10 }, // IPK
+        { wch: 15 }, // Mulai Magang
+        { wch: 15 }, // Selesai Magang
+        { wch: 30 }, // Tujuan Magang
+        { wch: 20 }, // Divisi
+        { wch: 40 }, // Surat Pengantar
+        { wch: 40 }, // CV
+        { wch: 40 }, // Foto
+        { wch: 40 }, // KTP/KTM
+        { wch: 40 }, // Transkrip Nilai
+        { wch: 40 }, // Surat Rekomendasi
+        { wch: 30 }, // Komentar
+        { wch: 12 }, // Status
+        { wch: 50 }, // Logbooks
+        { wch: 50 }, // Notifications
+        { wch: 20 }, // Tanggal Upload Sertifikat
+        { wch: 15 }, // Dibuat Pada
+        { wch: 15 }, // Diperbarui Pada
+        { wch: 10 }, // Versi
+        { wch: 25 }, // Pembimbing
+        { wch: 40 }, // Sertifikat
+      ];
+      ws["!cols"] = colWidths;
+
+      // Add worksheet to workbook
+      XLSX.utils.book_append_sheet(wb, ws, "Data Pendaftaran");
+
+      // Generate current date for filename
+      const currentDate = new Date().toISOString().split("T")[0];
+
+      // Download the file
+      XLSX.writeFile(wb, `rekap_pendaftaran_${currentDate}.xlsx`);
+
+      toast.success("Rekap data berhasil diunduh", {
+        position: "bottom-right",
+      });
+    } catch (error) {
+      console.error("Download error:", error);
+      toast.error("Gagal mengunduh rekap data", { position: "bottom-right" });
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  // Function to download filtered data as Excel
+  const downloadFilteredExcel = () => {
+    try {
+      setIsDownloading(true);
+
+      // Format data for Excel
+      const formattedData = filteredData.map((item) => {
+        // Get pembimbing name if exists
+        const pembimbingName = item.pembimbing
+          ? getPembimbingName(item.pembimbing)
+          : "Belum ada pembimbing";
+
+        return {
+          ID: item._id || "",
+          Email: item.email || "",
+          Nama: item.nama || "",
+          TTL: item.ttl || "",
+          "Tanggal Lahir": item.tanggalLahir
+            ? new Date(item.tanggalLahir).toLocaleDateString("id-ID")
+            : "",
+          "Jenis Kelamin": item.jenisKelamin || "",
+          Alamat: item.alamat || "",
+          "No HP": item.telepon || "",
+          Institusi: item.institusi || "",
+          "Program Studi": item.prodi || "",
+          Jenjang: item.jenjang || "",
+          Semester: item.semester || "",
+          IPK: item.ipk || "",
+          "Mulai Magang": item.mulai
+            ? new Date(item.mulai).toLocaleDateString("id-ID")
+            : "",
+          "Selesai Magang": item.selesai
+            ? new Date(item.selesai).toLocaleDateString("id-ID")
+            : "",
+          "Tujuan Magang": item.tujuan || "",
+          Divisi: item.divisi || "",
+          "Surat Pengantar": item.suratPengantar
+            ? `http://localhost:5000/uploads/${item.suratPengantar}`
+            : "",
+          CV: item.cv ? `http://localhost:5000/uploads/${item.cv}` : "",
+          Foto: item.foto ? `http://localhost:5000/uploads/${item.foto}` : "",
+          "KTP/KTM": item.ktpAtauKtm
+            ? `http://localhost:5000/uploads/${item.ktpAtauKtm}`
+            : "",
+          "Transkrip Nilai": item.transkrip
+            ? `http://localhost:5000/uploads/${item.transkrip}`
+            : "",
+          "Surat Rekomendasi": item.rekomendasi
+            ? `http://localhost:5000/uploads/${item.rekomendasi}`
+            : "",
+          Komentar: item.komentar || "",
+          Status: item.status || "pending",
+          Logbooks: item.logbooks ? JSON.stringify(item.logbooks) : "",
+          Notifications: item.notifications
+            ? JSON.stringify(item.notifications)
+            : "",
+          "Tanggal Upload Sertifikat": item.certificateUploadDate
+            ? new Date(item.certificateUploadDate).toLocaleDateString("id-ID")
+            : "",
+          "Dibuat Pada": item.createdAt
+            ? new Date(item.createdAt).toLocaleDateString("id-ID")
+            : "",
+          "Diperbarui Pada": item.updatedAt
+            ? new Date(item.updatedAt).toLocaleDateString("id-ID")
+            : "",
+          Versi: item.__v || "0",
+          Pembimbing: pembimbingName,
+          Sertifikat: item.certificate
+            ? `http://localhost:5000/uploads/${item.certificate}`
+            : "",
+        };
+      });
+
+      // Create workbook and worksheet
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(formattedData);
+
+      // Set column widths
+      const colWidths = [
+        { wch: 25 }, // ID
+        { wch: 25 }, // Email
+        { wch: 25 }, // Nama
+        { wch: 25 }, // TTL
+        { wch: 15 }, // Tanggal Lahir
+        { wch: 15 }, // Jenis Kelamin
+        { wch: 30 }, // Alamat
+        { wch: 15 }, // No HP
+        { wch: 25 }, // Institusi
+        { wch: 20 }, // Program Studi
+        { wch: 10 }, // Jenjang
+        { wch: 10 }, // Semester
+        { wch: 10 }, // IPK
+        { wch: 15 }, // Mulai Magang
+        { wch: 15 }, // Selesai Magang
+        { wch: 30 }, // Tujuan Magang
+        { wch: 20 }, // Divisi
+        { wch: 40 }, // Surat Pengantar
+        { wch: 40 }, // CV
+        { wch: 40 }, // Foto
+        { wch: 40 }, // KTP/KTM
+        { wch: 40 }, // Transkrip Nilai
+        { wch: 40 }, // Surat Rekomendasi
+        { wch: 30 }, // Komentar
+        { wch: 12 }, // Status
+        { wch: 50 }, // Logbooks
+        { wch: 50 }, // Notifications
+        { wch: 20 }, // Tanggal Upload Sertifikat
+        { wch: 15 }, // Dibuat Pada
+        { wch: 15 }, // Diperbarui Pada
+        { wch: 10 }, // Versi
+        { wch: 25 }, // Pembimbing
+        { wch: 40 }, // Sertifikat
+      ];
+      ws["!cols"] = colWidths;
+
+      // Add worksheet to workbook
+      XLSX.utils.book_append_sheet(wb, ws, "Data Pendaftaran");
+
+      // Generate current date for filename
+      const currentDate = new Date().toISOString().split("T")[0];
+      const statusFilter =
+        searchTerm && searchTerm !== "all" ? `_${searchTerm}` : "";
+
+      // Download the file
+      XLSX.writeFile(
+        wb,
+        `rekap_pendaftaran${statusFilter}_${currentDate}.xlsx`
+      );
+
+      toast.success("Data berhasil diunduh", { position: "bottom-right" });
+    } catch (error) {
+      console.error("Download error:", error);
+      toast.error("Gagal mengunduh data", { position: "bottom-right" });
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   return (
     <AdminLayout>
       <Head>
@@ -363,13 +651,93 @@ export default function DataPendaftaran() {
       </Head>
       {/* Header Section */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">
-          📋 Data Pendaftaran Magang
-        </h1>
-        <p className="text-gray-600">
-          Kelola data pendaftaran magang di Kominfo Palembang
-        </p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-800">
+              📋 Data Pendaftaran Magang
+            </h1>
+            <p className="text-gray-600">
+              Kelola data pendaftaran magang di Kominfo Palembang
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={downloadExcelReport}
+              disabled={isDownloading || pendaftar.length === 0}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+            >
+              {isDownloading ? (
+                <>
+                  <svg
+                    className="animate-spin h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Memproses...
+                </>
+              ) : (
+                <>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                    />
+                  </svg>
+                  Download Rekap
+                </>
+              )}
+            </button>
+            {filteredData.length > 0 &&
+              filteredData.length !== pendaftar.length && (
+                <button
+                  onClick={downloadFilteredExcel}
+                  disabled={isDownloading}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                    />
+                  </svg>
+                  Download Filtered
+                </button>
+              )}
+          </div>
+        </div>
       </div>
+
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
         {Object.entries(stats).map(([key, value]) => (
@@ -408,6 +776,7 @@ export default function DataPendaftaran() {
           </div>
         ))}
       </div>
+
       {/* Search and Filter */}
       <div className="mb-6 flex flex-col md:flex-row gap-4">
         <input

@@ -44,10 +44,6 @@ export default function DataLaporanAkhir() {
 
         setPendaftar(pendaftarResponse.data);
 
-        const dataWithLaporan = pendaftarResponse.data.filter(
-          (item) => item.laporanAkhir && item.status === "disetujui"
-        );
-
         const formattedData = pendaftarResponse.data.map((item) => ({
           id: item._id,
           nama: item.nama,
@@ -88,46 +84,27 @@ export default function DataLaporanAkhir() {
   );
 
   const handleViewReport = (filename) => {
-    window.open(`http://localhost:5000/uploads/${filename}`, "_blank");
-  };
-
-  const handleVerify = async (id) => {
-    try {
-      const token = localStorage.getItem("token");
-      await axios.patch(
-        `http://localhost:5000/api/pendaftaran/${id}/verify-laporan`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      toast.success("Laporan berhasil diverifikasi");
-      // Update local state
-      setLaporan(
-        laporan.map((item) =>
-          item.id === id ? { ...item, status: "verified" } : item
-        )
-      );
-    } catch (error) {
-      console.error("Error verifying:", error);
-      if (error.response?.data?.message) {
-        toast.error(error.response.data.message);
-      } else {
-        toast.error("Gagal memverifikasi laporan");
-      }
-    }
+    // Decode URL encoded filename
+    const decodedFilename = decodeURIComponent(filename);
+    window.open(
+      `http://localhost:5000/api/download-laporan/${decodedFilename}`,
+      "_blank"
+    );
   };
 
   const handleDownloadReport = async (filename) => {
     try {
       const token = localStorage.getItem("token");
+      // Decode URL encoded filename
+      const decodedFilename = decodeURIComponent(filename);
+
       const response = await axios.get(
-        `http://localhost:5000/api/download-laporan/${filename}`,
+        `http://localhost:5000/api/download-laporan/${decodedFilename}`,
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/pdf",
+          },
           responseType: "blob",
         }
       );
@@ -135,7 +112,7 @@ export default function DataLaporanAkhir() {
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", filename);
+      link.setAttribute("download", decodedFilename);
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -143,20 +120,16 @@ export default function DataLaporanAkhir() {
       setTimeout(() => window.URL.revokeObjectURL(url), 100);
     } catch (error) {
       console.error("Download error:", error);
-      toast.error("Gagal mengunduh laporan");
+      if (error.response?.status === 404) {
+        toast.error("File laporan tidak ditemukan di server");
+      } else {
+        toast.error("Gagal mengunduh laporan");
+      }
     }
   };
   const handleViewLogbook = (id) => {
     router.push(`/pembimbing/LogbookMagang?id=${id}`);
   };
-  // Tambahkan tombol download di kolom aksi
-  <button
-    onClick={() => handleDownloadReport(l.laporan)}
-    className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
-    title="Download Laporan"
-  >
-    <Download size={18} />
-  </button>;
 
   if (loading) {
     return (
@@ -171,7 +144,7 @@ export default function DataLaporanAkhir() {
   return (
     <AdminLayout>
       <Head>
-        <title>Data laporan Akhir | Kominfo Palembang</title>
+        <title>Data Laporan Akhir | Kominfo Palembang</title>
       </Head>
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
@@ -291,10 +264,17 @@ export default function DataLaporanAkhir() {
                             >
                               <Eye size={18} />
                             </button>
+                            <button
+                              onClick={() => handleDownloadReport(l.laporan)}
+                              className="p-2 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 transition-colors"
+                              title="Download Laporan"
+                            >
+                              <Download size={18} />
+                            </button>
                             {l.status === "pending" && (
                               <button
                                 onClick={() => handleVerify(l.id)}
-                                className="p-2 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 transition-colors"
+                                className="p-2 rounded-lg bg-purple-50 text-purple-600 hover:bg-purple-100 transition-colors"
                                 title="Verifikasi"
                               >
                                 <CheckCircle size={18} />
