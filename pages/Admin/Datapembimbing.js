@@ -95,29 +95,28 @@ export default function Pembimbing() {
   const fetchMahasiswaBimbingan = async (pembimbingId) => {
     try {
       setIsLoading(true);
+      console.log("🔍 Fetching mahasiswa untuk pembimbing:", pembimbingId);
+
       const res = await axios.get(
         `http://localhost:5000/api/pembimbing/${pembimbingId}/mahasiswa`
       );
 
-      // Debugging - tampilkan response di console
-      console.log("Response data:", res.data);
+      console.log("✅ Response data mahasiswa:", res.data);
 
-      // Pastikan response memiliki format yang benar
       if (res.data && Array.isArray(res.data)) {
         setMahasiswaBimbingan(res.data);
+        console.log("📊 Jumlah mahasiswa bimbingan:", res.data.length);
       } else {
-        console.error("Format data tidak valid:", res.data);
+        console.error("❌ Format data tidak valid:", res.data);
         setMahasiswaBimbingan([]);
       }
     } catch (error) {
-      console.error("Error fetching mahasiswa:", {
+      console.error("❌ Error fetching mahasiswa:", {
         message: error.message,
         response: error.response?.data,
-        config: error.config,
+        status: error.response?.status,
       });
-      toast.error(
-        error.response?.data?.message || "Gagal memuat data mahasiswa"
-      );
+      toast.error("Gagal memuat data mahasiswa bimbingan");
       setMahasiswaBimbingan([]);
     } finally {
       setIsLoading(false);
@@ -473,7 +472,9 @@ export default function Pembimbing() {
                                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                                           {mhs.email || "-"}
                                         </td>
-
+                                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                                          {mhs.telepon || "-"}
+                                        </td>
                                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                                           {mhs.institusi}
                                         </td>
@@ -502,88 +503,14 @@ export default function Pembimbing() {
                                         </td>
                                         <td className="px-4 py-3 whitespace-nowrap">
                                           <div className="flex flex-wrap gap-2">
-                                            {/* Detail Button */}
                                             <button
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleViewMahasiswaDetail(mhs);
-                                              }}
-                                              className="flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100 transition-colors border border-blue-100 text-xs"
+                                              onClick={() =>
+                                                handleViewMahasiswaDetail(mhs)
+                                              }
+                                              className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded hover:bg-blue-200"
                                             >
-                                              <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                className="h-3.5 w-3.5"
-                                                fill="none"
-                                                viewBox="0 0 24 24"
-                                                stroke="currentColor"
-                                              >
-                                                <path
-                                                  strokeLinecap="round"
-                                                  strokeLinejoin="round"
-                                                  strokeWidth={2}
-                                                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                                                />
-                                              </svg>
                                               Detail
                                             </button>
-
-                                            {/* Logbook Button */}
-                                            <Link
-                                              href={`/admin/DataLogbook?id=${
-                                                mhs._id
-                                              }&nama=${encodeURIComponent(
-                                                mhs.nama
-                                              )}`}
-                                              className="flex items-center gap-1 px-3 py-1.5 bg-green-50 text-green-700 rounded-md hover:bg-green-100 transition-colors border border-green-100 text-xs"
-                                              onClick={(e) =>
-                                                e.stopPropagation()
-                                              }
-                                            >
-                                              <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                className="h-3.5 w-3.5"
-                                                fill="none"
-                                                viewBox="0 0 24 24"
-                                                stroke="currentColor"
-                                              >
-                                                <path
-                                                  strokeLinecap="round"
-                                                  strokeLinejoin="round"
-                                                  strokeWidth={2}
-                                                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                                />
-                                              </svg>
-                                              Logbook
-                                            </Link>
-
-                                            {/* Laporan Button */}
-                                            <Link
-                                              href={`/admin/DataLaporanAkhir?id=${
-                                                mhs._id
-                                              }&nama=${encodeURIComponent(
-                                                mhs.nama
-                                              )}`}
-                                              className="flex items-center gap-1 px-3 py-1.5 bg-purple-50 text-purple-700 rounded-md hover:bg-purple-100 transition-colors border border-purple-100 text-xs"
-                                              onClick={(e) =>
-                                                e.stopPropagation()
-                                              }
-                                            >
-                                              <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                className="h-3.5 w-3.5"
-                                                fill="none"
-                                                viewBox="0 0 24 24"
-                                                stroke="currentColor"
-                                              >
-                                                <path
-                                                  strokeLinecap="round"
-                                                  strokeLinejoin="round"
-                                                  strokeWidth={2}
-                                                  d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                                />
-                                              </svg>
-                                              Laporan
-                                            </Link>
                                           </div>
                                         </td>
                                       </tr>
@@ -601,7 +528,7 @@ export default function Pembimbing() {
                           </div>
                         </td>
                       </tr>
-                    )}{" "}
+                    )}
                   </>
                 ))
               )}

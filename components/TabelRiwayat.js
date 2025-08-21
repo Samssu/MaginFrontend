@@ -139,6 +139,7 @@ export default function TabelRiwayat() {
     }
   };
 
+  // Di tabelriwayat.js, perbaiki fungsi handleDownload untuk surat balasan
   const handleDownload = async (filename, folder = "") => {
     if (!filename) {
       toast.error("File tidak tersedia");
@@ -158,7 +159,6 @@ export default function TabelRiwayat() {
       const response = await axios.get(url, {
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "application/octet-stream",
         },
         responseType: "blob",
       });
@@ -714,14 +714,17 @@ export default function TabelRiwayat() {
                                     {item.pembimbing ? (
                                       <>
                                         <p className="font-medium">
-                                          {item.pembimbing.nama ||
-                                            `Pembimbing (ID: ${item.pembimbing})`}
+                                          {typeof item.pembimbing === "object"
+                                            ? item.pembimbing.nama ||
+                                              `Pembimbing (ID: ${item.pembimbing._id})`
+                                            : `Pembimbing (ID: ${item.pembimbing})`}
                                         </p>
-                                        {item.pembimbing.divisi && (
-                                          <p className="text-sm text-gray-500 mt-1">
-                                            Divisi: {item.pembimbing.divisi}
-                                          </p>
-                                        )}
+                                        {typeof item.pembimbing === "object" &&
+                                          item.pembimbing.divisi && (
+                                            <p className="text-sm text-gray-500 mt-1">
+                                              Divisi: {item.pembimbing.divisi}
+                                            </p>
+                                          )}
                                       </>
                                     ) : (
                                       <p className="text-gray-500">
@@ -807,76 +810,37 @@ export default function TabelRiwayat() {
                                     </>
                                   )}
 
-                                  {/* Informasi Status - SURAT BALASAN */}
                                   {item.status === "disetujui" && (
                                     <div className="border-t border-gray-200 pt-4 mt-4">
                                       <h4 className="font-medium text-gray-700 mb-3">
                                         Surat Balasan
                                       </h4>
 
-                                      {item.suratBalasan ? (
-                                        <>
-                                          {/* Tombol Unduh Surat Balasan */}
-                                          <div className="mb-3">
-                                            <button
-                                              onClick={() =>
-                                                handleDownload(
+                                      {/* Tombol Unduh Surat Balasan - SELALU TAMPIL */}
+                                      <div className="mb-3">
+                                        <button
+                                          onClick={() =>
+                                            item.suratBalasan
+                                              ? handleDownload(
                                                   item.suratBalasan
                                                 )
-                                              }
-                                              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                                            >
-                                              <FileText size={16} />
-                                              Unduh Surat Balasan
-                                            </button>
-                                          </div>
+                                              : null
+                                          }
+                                          className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors bg-blue-600 text-white hover:bg-blue-700"
+                                        >
+                                          <FileText size={16} />
+                                          {item.suratBalasan
+                                            ? "Unduh Surat Balasan"
+                                            : "Unduh Surat Balasan"}{" "}
+                                          {/* Surat Belum Tersedia */}
+                                        </button>
+                                      </div>
 
-                                          {/* Info Surat Balasan */}
-                                          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                              <div>
-                                                <p className="text-sm font-medium text-gray-600">
-                                                  Nama File:
-                                                </p>
-                                                <p className="text-sm text-gray-800 font-mono">
-                                                  {item.suratBalasan}
-                                                </p>
-                                              </div>
-                                              <div>
-                                                <p className="text-sm font-medium text-gray-600">
-                                                  Status:
-                                                </p>
-                                                <p className="text-sm text-green-600 font-medium">
-                                                  ✅ Tersedia
-                                                </p>
-                                              </div>
-                                            </div>
-                                          </div>
-                                        </>
-                                      ) : (
-                                        <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-                                          <div className="flex items-center gap-3">
-                                            <AlertCircle
-                                              className="text-yellow-600"
-                                              size={20}
-                                            />
-                                            <div>
-                                              <p className="text-sm font-medium text-yellow-800">
-                                                Surat Balasan Belum Tersedia
-                                              </p>
-                                              <p className="text-sm text-yellow-700">
-                                                Admin belum mengupload surat
-                                                balasan untuk pendaftaran ini.
-                                                Silakan hubungi administrator.
-                                              </p>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      )}
-
-                                      <p className="text-xs text-gray-500 mt-2">
-                                        Surat balasan resmi dari Kominfo
-                                        Palembang
+                                      {/* Menambahkan Notifikasi */}
+                                      <p className="text-xs text-gray-500">
+                                        {item.suratBalasan
+                                          ? "Surat balasan resmi dari Kominfo Palembang tersedia untuk diunduh."
+                                          : "Surat balasan masih belum tersedia."}
                                       </p>
                                     </div>
                                   )}

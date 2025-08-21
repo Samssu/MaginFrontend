@@ -1,4 +1,3 @@
-"use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
@@ -27,6 +26,13 @@ export default function DataLaporanAkhir() {
   const [pendaftar, setPendaftar] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedLaporan, setSelectedLaporan] = useState(null); // State untuk menyimpan detail laporan
+  const [verificationStatus, setVerificationStatus] = useState({
+    pembimbing: false,
+    admin: false,
+  });
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [userRole, setUserRole] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -63,6 +69,10 @@ export default function DataLaporanAkhir() {
             ? "pending"
             : "none",
           hasReport: !!item.laporanAkhir,
+          pembimbing: item.pembimbing || null,
+          admin: item.admin || null,
+          laporanVerified: item.laporanVerified || false,
+          laporanVerificationDate: item.laporanVerificationDate || null,
         }));
 
         setLaporan(formattedData);
@@ -84,7 +94,6 @@ export default function DataLaporanAkhir() {
   );
 
   const handleViewReport = (filename) => {
-    // Decode URL encoded filename
     const decodedFilename = decodeURIComponent(filename);
     window.open(
       `http://localhost:5000/api/download-laporan/${decodedFilename}`,
@@ -95,7 +104,6 @@ export default function DataLaporanAkhir() {
   const handleDownloadReport = async (filename) => {
     try {
       const token = localStorage.getItem("token");
-      // Decode URL encoded filename
       const decodedFilename = decodeURIComponent(filename);
 
       const response = await axios.get(
@@ -127,8 +135,69 @@ export default function DataLaporanAkhir() {
       }
     }
   };
+
   const handleViewLogbook = (id) => {
     router.push(`/pembimbing/LogbookMagang?id=${id}`);
+  };
+
+  const handleViewDetail = (laporan) => {
+    setSelectedLaporan(laporan); // Set selected laporan to show in modal
+  };
+
+  const handleVerification = async (verifier) => {
+    try {
+      setIsUpdating(true);
+      const token = localStorage.getItem("token");
+
+      await axios.patch(
+        `http://localhost:5000/api/pendaftaran/${selectedLaporan.id}/verify-laporan`,
+        { verifier },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      // Update local state
+      const updatedLaporan = laporan.map((item) =>
+        item.id === selectedLaporan.id
+          ? {
+              ...item,
+              status: verifier === "admin" ? "verified" : item.status,
+              pembimbing:
+                verifier === "pembimbing"
+                  ? { ...item.pembimbing, status: "verified" }
+                  : item.pembimbing,
+              admin:
+                verifier === "admin"
+                  ? { ...item.admin, status: "verified" }
+                  : item.admin,
+            }
+          : item
+      );
+
+      setLaporan(updatedLaporan);
+      setSelectedLaporan((prev) => ({
+        ...prev,
+        status: verifier === "admin" ? "verified" : prev.status,
+        pembimbing:
+          verifier === "pembimbing"
+            ? { ...prev.pembimbing, status: "verified" }
+            : prev.pembimbing,
+        admin:
+          verifier === "admin"
+            ? { ...prev.admin, status: "verified" }
+            : prev.admin,
+      }));
+
+      toast.success(`Laporan berhasil diverifikasi oleh ${verifier}`);
+    } catch (error) {
+      console.error("Error verifying report:", error);
+      toast.error("Gagal memverifikasi laporan");
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   if (loading) {
@@ -258,6 +327,13 @@ export default function DataLaporanAkhir() {
                         {l.hasReport ? (
                           <>
                             <button
+                              onClick={() => handleViewDetail(l)}
+                              className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
+                              title="Lihat Detail"
+                            >
+                              Detail
+                            </button>
+                            <button
                               onClick={() => handleViewReport(l.laporan)}
                               className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
                               title="Lihat Laporan"
@@ -271,15 +347,6 @@ export default function DataLaporanAkhir() {
                             >
                               <Download size={18} />
                             </button>
-                            {l.status === "pending" && (
-                              <button
-                                onClick={() => handleVerify(l.id)}
-                                className="p-2 rounded-lg bg-purple-50 text-purple-600 hover:bg-purple-100 transition-colors"
-                                title="Verifikasi"
-                              >
-                                <CheckCircle size={18} />
-                              </button>
-                            )}
                           </>
                         ) : (
                           <span className="text-sm text-gray-400 px-3 py-2">
@@ -309,6 +376,187 @@ export default function DataLaporanAkhir() {
           </div>
         )}
       </div>
+
+      {/* Modal Detail Laporan */}
+      {selectedLaporan && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold text-gray-800">
+                  Detail Laporan Akhir
+                </h3>
+                <button
+                  onClick={() => setSelectedLaporan(null)}
+                  className="text-gray-500 hover:text-gray-700 text-2xl"
+                >
+                  &times;
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Data Peserta */}
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-500">
+                      Nama Lengkap
+                    </h4>
+                    <p className="text-gray-800 font-medium">
+                      {selectedLaporan.nama}
+                    </p>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-500">Email</h4>
+                    <p className="text-gray-800">{selectedLaporan.email}</p>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-500">
+                      Institusi
+                    </h4>
+                    <p className="text-gray-800">{selectedLaporan.institusi}</p>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-500">
+                      Status Laporan
+                    </h4>
+                    <span
+                      className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                        selectedLaporan.status === "verified"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-yellow-100 text-yellow-800"
+                      }`}
+                    >
+                      {selectedLaporan.status === "verified"
+                        ? "Terverifikasi"
+                        : "Menunggu Verifikasi"}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Data Periode dan Upload */}
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-500">
+                      Periode Magang
+                    </h4>
+                    <p className="text-gray-800">{selectedLaporan.periode}</p>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-500">
+                      Tanggal Upload Laporan
+                    </h4>
+                    <p className="text-gray-800">
+                      {new Date(
+                        selectedLaporan.tanggalUpload
+                      ).toLocaleDateString("id-ID")}
+                    </p>
+                  </div>
+                  {selectedLaporan.laporanVerificationDate && (
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-500">
+                        Tanggal Verifikasi
+                      </h4>
+                      <p className="text-gray-800">
+                        {new Date(
+                          selectedLaporan.laporanVerificationDate
+                        ).toLocaleDateString("id-ID")}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Status Verifikasi Pembimbing */}
+              {selectedLaporan.pembimbing && (
+                <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                  <h4 className="text-sm font-medium text-gray-500 mb-2">
+                    Status Pembimbing
+                  </h4>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">
+                        {selectedLaporan.pembimbing.nama}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {selectedLaporan.pembimbing.divisi}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                          selectedLaporan.pembimbing.status === "verified"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-yellow-100 text-yellow-800"
+                        }`}
+                      >
+                        {selectedLaporan.pembimbing.status === "verified"
+                          ? "Terverifikasi"
+                          : "Belum Diverifikasi"}
+                      </span>
+                      {selectedLaporan.pembimbing.status !== "verified" && (
+                        <button
+                          onClick={() => handleVerification("pembimbing")}
+                          disabled={isUpdating}
+                          className="px-3 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600 disabled:opacity-50"
+                        >
+                          {isUpdating ? "Memproses..." : "Verifikasi"}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Status Verifikasi Admin */}
+              <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                <h4 className="text-sm font-medium text-gray-500 mb-2">
+                  Status Admin
+                </h4>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">Administrator</p>
+                    <p className="text-sm text-gray-600">
+                      Sistem Magang Kominfo
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                        selectedLaporan.status === "verified"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-yellow-100 text-yellow-800"
+                      }`}
+                    >
+                      {selectedLaporan.status === "verified"
+                        ? "Terverifikasi"
+                        : "Belum Diverifikasi"}
+                    </span>
+                    {selectedLaporan.status !== "verified" &&
+                      selectedLaporan.pembimbing?.status === "verified" && (
+                        <button
+                          onClick={() => handleVerification("admin")}
+                          disabled={isUpdating}
+                          className="px-3 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600 disabled:opacity-50"
+                        >
+                          {isUpdating ? "Memproses..." : "Verifikasi Final"}
+                        </button>
+                      )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 flex justify-end">
+                <button
+                  onClick={() => setSelectedLaporan(null)}
+                  className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
+                >
+                  Tutup
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </AdminLayout>
   );
 }

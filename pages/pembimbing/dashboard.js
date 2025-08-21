@@ -36,41 +36,42 @@ export default function DashboardPembimbing() {
         }
         setUser(userData);
 
-        // Mengambil data mahasiswa bimbingan
-        const mahasiswaRes = await axios.get(
-          `/api/pembimbing/${userData.id}/mahasiswa`
-        );
-        const mahasiswa = mahasiswaRes.data;
+        // Backend fetch data bagian dikomentari
+        // // Mengambil data mahasiswa bimbingan
+        // const mahasiswaRes = await axios.get(
+        //   `/api/pembimbing/${userData.id}/mahasiswa`
+        // );
+        // const mahasiswa = mahasiswaRes.data;
 
         // Hitung statistik
-        const sekarang = new Date();
-        const mahasiswaAktif = mahasiswa.filter((m) => {
-          if (!m.mulai || !m.selesai) return false;
-          const mulai = new Date(m.mulai);
-          const selesai = new Date(m.selesai);
-          return mulai <= sekarang && selesai >= sekarang;
-        });
+        // const sekarang = new Date();
+        // const mahasiswaAktif = mahasiswa.filter((m) => {
+        //   if (!m.mulai || !m.selesai) return false;
+        //   const mulai = new Date(m.mulai);
+        //   const selesai = new Date(m.selesai);
+        //   return mulai <= sekarang && selesai >= sekarang;
+        // });
 
-        const mahasiswaSelesai = mahasiswa.filter((m) => {
-          if (!m.selesai) return false;
-          const selesai = new Date(m.selesai);
-          return selesai < sekarang;
-        });
+        // const mahasiswaSelesai = mahasiswa.filter((m) => {
+        //   if (!m.selesai) return false;
+        //   const selesai = new Date(m.selesai);
+        //   return selesai < sekarang;
+        // });
 
-        const totalLogbooks = mahasiswa.reduce(
-          (acc, curr) => acc + (curr.logbooks?.length || 0),
-          0
-        );
+        // const totalLogbooks = mahasiswa.reduce(
+        //   (acc, curr) => acc + (curr.logbooks?.length || 0),
+        //   0
+        // );
 
         setStats({
-          totalPesertaMagang: mahasiswa.length,
-          aktif: mahasiswaAktif.length,
-          selesai: mahasiswaSelesai.length,
-          totalLogbookMagang: totalLogbooks,
+          totalPesertaMagang: 2, // Ganti nilai sementara untuk menampilkan UI
+          aktif: 2, // Ganti nilai sementara untuk menampilkan UI
+          selesai: 0, // Ganti nilai sementara untuk menampilkan UI
+          totalLogbookMagang: 0, // Ganti nilai sementara untuk menampilkan UI
         });
       } catch (error) {
         console.error("Error fetching data:", error);
-        toast.error("Gagal memuat data dashboard");
+
         if (error.response?.status === 401) {
           router.push("/login");
         }

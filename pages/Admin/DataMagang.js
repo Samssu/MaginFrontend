@@ -258,6 +258,13 @@ export default function DataPendaftaran() {
       const pembimbingData = pembimbingList.find(
         (p) => p._id === selectedPembimbing
       );
+
+      // Perbaikan: Cek status aktif dan kapasitas
+      if (pembimbingData.status !== "aktif") {
+        toast.error("Pembimbing tidak aktif");
+        return;
+      }
+
       if (pembimbingData.jumlahMahasiswa >= 5) {
         toast.error(
           "Pembimbing ini sudah mencapai kapasitas maksimal (5 mahasiswa)"
@@ -272,17 +279,22 @@ export default function DataPendaftaran() {
 
       if (pendaftarData.pembimbing) {
         // Jika sudah ada pembimbing, kurangi jumlah mahasiswa pembimbing sebelumnya
-        await axios.patch(
-          `http://localhost:5000/api/pembimbing/${pendaftarData.pembimbing}/kurangi-mahasiswa`
-        );
+        try {
+          await axios.patch(
+            `http://localhost:5000/api/pembimbing/${pendaftarData.pembimbing}/kurangi-mahasiswa`
+          );
+        } catch (error) {
+          console.error("Error mengurangi mahasiswa sebelumnya:", error);
+          // Lanjutkan meskipun gagal mengurangi (bisa jadi pembimbing sudah dihapus)
+        }
       }
 
-      // 3. Update pendaftaran data dengan pembimbing baru
+      // 3. Update pendaftaran data dengan pembimbing baru - PERBAIKAN DI SINI
       await axios.patch(
         `http://localhost:5000/api/pendaftaran/${selectedPendaftarId}`,
         {
-          pembimbing: selectedPembimbing,
-          status: "disetujui", // Pastikan status disetujui
+          pembimbing: selectedPembimbing, // Gunakan field yang benar
+          status: "disetujui",
         }
       );
 
@@ -297,7 +309,13 @@ export default function DataPendaftaran() {
       setSelectedPembimbing("");
     } catch (error) {
       console.error("Error assigning pembimbing:", error);
-      toast.error("Gagal menambahkan pembimbing");
+
+      // Tampilkan error yang lebih spesifik
+      if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error("Gagal menambahkan pembimbing");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -1322,31 +1340,62 @@ export default function DataPendaftaran() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {Object.entries(selectedDetail).map(([key, value]) => (
-                  <div key={key} className="space-y-1">
-                    <h4 className="text-sm font-medium text-gray-500 capitalize">
-                      {key.replace(/([A-Z])/g, " $1")}
-                    </h4>
-                    {typeof value === "string" && value.endsWith(".pdf") ? (
-                      <a
-                        href={`http://localhost:5000/uploads/${value}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline break-all"
-                      >
-                        Lihat Dokumen
-                      </a>
-                    ) : key === "pembimbing" ? (
-                      <p className="text-gray-800 break-all">
-                        {value
-                          ? getPembimbingName(value)
-                          : "Belum ada pembimbing"}
-                      </p>
-                    ) : (
-                      <p className="text-gray-800 break-all">{value || "-"}</p>
-                    )}
-                  </div>
-                ))}
+                {Object.entries(selectedDetail).map(([key, value]) => {
+                  // Skip fields yang berisi object atau array kompleks
+                  if (
+                    typeof value === "object" &&
+                    value !== null &&
+                    !Array.isArray(value)
+                  ) {
+                    return null;
+                  }
+
+                  // Handle array fields
+                  if (Array.isArray(value)) {
+                    return (
+                      <div key={key} className="space-y-1">
+                        <h4 className="text-sm font-medium text-gray-500 capitalize">
+                          {key.replace(/([A-Z])/g, " $1")}
+                        </h4>
+                        <p className="text-gray-800 break-all">
+                          {value.length > 0
+                            ? `${value.length} items`
+                            : "Tidak ada data"}
+                        </p>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div key={key} className="space-y-1">
+                      <h4 className="text-sm font-medium text-gray-500 capitalize">
+                        {key.replace(/([A-Z])/g, " $1")}
+                      </h4>
+                      {typeof value === "string" && value.endsWith(".pdf") ? (
+                        <a
+                          href={`http://localhost:5000/uploads/${value}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline break-all"
+                        >
+                          Lihat Dokumen
+                        </a>
+                      ) : key === "pembimbing" ? (
+                        <p className="text-gray-800 break-all">
+                          {value
+                            ? getPembimbingName(value)
+                            : "Belum ada pembimbing"}
+                        </p>
+                      ) : (
+                        <p className="text-gray-800 break-all">
+                          {value !== null && value !== undefined
+                            ? value.toString()
+                            : "-"}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
 
               <div className="mt-6 p-4 bg-gray-50 rounded-lg">
@@ -1436,7 +1485,7 @@ export default function DataPendaftaran() {
               <div className="space-y-4">
                 <div>
                   <p className="font-medium">Nama Pendaftar:</p>
-                  <p className="text-gray-700">{selectedAction.data.nama}</p>
+                  <p className="text-gray-700">{selectedAction?.data?.nama}</p>
                 </div>
 
                 <div>
@@ -1529,7 +1578,7 @@ export default function DataPendaftaran() {
                   >
                     <option value="">-- Pilih Pembimbing --</option>
                     {pembimbingList
-                      .filter((p) => p.status === "aktif")
+                      .filter((p) => p.status === "aktif") // Pastikan hanya yang aktif
                       .map((pembimbing) => (
                         <option
                           key={pembimbing._id}
@@ -1539,7 +1588,7 @@ export default function DataPendaftaran() {
                           {pembimbing.nama} - {pembimbing.divisi}
                           {pembimbing.jumlahMahasiswa >= 5
                             ? " (Kapasitas Penuh)"
-                            : ` (${pembimbing.jumlahMahasiswa}/5)`}
+                            : ` (${pembimbing.jumlahMahasiswa || 0}/5)`}
                         </option>
                       ))}
                   </select>
@@ -1569,6 +1618,16 @@ export default function DataPendaftaran() {
                               (p) => p._id === selectedPembimbing
                             )?.divisi
                           }
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500">Status</p>
+                        <p className="text-sm">
+                          {pembimbingList.find(
+                            (p) => p._id === selectedPembimbing
+                          )?.status === "aktif"
+                            ? "Aktif"
+                            : "Tidak Aktif"}
                         </p>
                       </div>
                       <div>

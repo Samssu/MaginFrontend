@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import Head from "next/head";
+import { useRouter } from "next/navigation"; // ← Import useRouter
 import { useEffect, useState } from "react";
 import PembimbingLayout from "../../components/layouts/PembimbingLayout";
 import axios from "axios";
@@ -16,6 +17,7 @@ import {
 } from "lucide-react";
 
 export default function Pembimbing() {
+  const router = useRouter(); // ← Inisialisasi router
   const [pembimbing, setPembimbing] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [expandedRows, setExpandedRows] = useState({});
@@ -279,55 +281,30 @@ export default function Pembimbing() {
                                           </span>
                                         </td>
                                         <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500 flex gap-2">
-                                          <button
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              router.push(
-                                                `/pembimbing/LogbookMagang?id=${mhs._id}`
-                                              );
-                                            }}
-                                            className="flex items-center gap-1 px-3 py-1.5 bg-blue-100 text-blue-800 rounded-lg hover:bg-blue-200 transition-all shadow-sm border border-blue-200 text-sm font-medium"
-                                          >
-                                            <BookOpen size={14} />
-                                            <span>Logbook</span>
-                                          </button>
-
-                                          <button
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              router.push(
-                                                `/pembimbing/LaporanAkhir?id=${mhs._id}`
-                                              );
-                                            }}
-                                            className="flex items-center gap-1 px-3 py-1.5 bg-green-100 text-green-800 rounded-lg hover:bg-green-200 transition-all shadow-sm border border-green-200 text-sm font-medium"
-                                          >
-                                            <FileText size={14} />
-                                            <span>Laporan</span>
-                                          </button>
-
-                                          <button
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              handleViewMahasiswaDetail(mhs);
-                                            }}
-                                            className="flex items-center gap-1 px-3 py-1.5 bg-yellow-100 text-yellow-800 rounded-lg hover:bg-yellow-200 transition-all shadow-sm border border-yellow-200 text-sm font-medium"
-                                          >
-                                            <svg
-                                              xmlns="http://www.w3.org/2000/svg"
-                                              className="h-4 w-4"
-                                              fill="none"
-                                              viewBox="0 0 24 24"
-                                              stroke="currentColor"
+                                          <div className="mt-6 flex justify-end gap-3">
+                                            <Link
+                                              href="/pembimbing/LogbookMagang"
+                                              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-2"
                                             >
-                                              <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                                              />
-                                            </svg>
-                                            <span>Detail</span>
-                                          </button>
+                                              <BookOpen size={16} />
+                                              Lihat Logbook
+                                            </Link>
+                                            <Link
+                                              href="/pembimbing/LaporanAkhir"
+                                              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center gap-2"
+                                            >
+                                              <FileText size={16} />
+                                              Lihat Laporan
+                                            </Link>
+                                            <button
+                                              onClick={() =>
+                                                setSelectedMahasiswa(null)
+                                              }
+                                              className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
+                                            >
+                                              Tutup
+                                            </button>
+                                          </div>
                                         </td>
                                       </tr>
                                     ))}
@@ -480,14 +457,14 @@ export default function Pembimbing() {
 
               <div className="mt-6 flex justify-end gap-3">
                 <Link
-                  href={`/pembimbing/LogbookMagang?id=${selectedMahasiswa._id}`}
+                  href="/pembimbing/LogbookMagang"
                   className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-2"
                 >
                   <BookOpen size={16} />
                   Lihat Logbook
                 </Link>
                 <Link
-                  href={`/pembimbing/LaporanAkhir?id=${selectedMahasiswa._id}`}
+                  href="/pembimbing/LaporanAkhir"
                   className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center gap-2"
                 >
                   <FileText size={16} />

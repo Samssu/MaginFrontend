@@ -1,501 +1,559 @@
-"use client";
-
-import React from "react";
-import Link from "next/link";
-import Head from "next/head";
 import { useEffect, useState } from "react";
-import PembimbingLayout from "../../components/layouts/PembimbingLayout";
+import { useRouter } from "next/navigation";
 import axios from "axios";
 import { toast } from "react-toastify";
+import PembimbingLayout from "@/components/layouts/PembimbingLayout";
 import {
-  UserCircle2,
-  ChevronDown,
-  ChevronUp,
-  BookOpen,
   FileText,
+  Search,
+  Frown,
+  Calendar,
+  User,
+  Eye,
+  FileCheck,
+  Clock,
+  FileX,
 } from "lucide-react";
+import Head from "next/head";
 
-export default function Pembimbing() {
-  const [pembimbing, setPembimbing] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [expandedRows, setExpandedRows] = useState({});
-  const [mahasiswaBimbingan, setMahasiswaBimbingan] = useState([]);
-  const [selectedMahasiswa, setSelectedMahasiswa] = useState(null);
+export default function DataLaporanAkhir() {
+  const router = useRouter();
+  const [laporan, setLaporan] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedLaporan, setSelectedLaporan] = useState(null);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [userRole, setUserRole] = useState("");
+  const [userId, setUserId] = useState("");
 
-  // Format tanggal ke bahasa Indonesia
-  const formatDate = (dateString) => {
-    if (!dateString) return "-";
-    const options = { day: "numeric", month: "long", year: "numeric" };
-    return new Date(dateString).toLocaleDateString("id-ID", options);
-  };
-
-  // Handle view detail mahasiswa
-  const handleViewMahasiswaDetail = (mahasiswa) => {
-    setSelectedMahasiswa(mahasiswa);
-  };
-
-  // Fetch data pembimbing
   useEffect(() => {
-    const fetchPembimbing = async () => {
+    // Ambil data user dari localStorage
+    const userData = JSON.parse(localStorage.getItem("user") || "{}");
+    if (userData && userData.role) {
+      setUserRole(userData.role);
+      setUserId(userData.id || userData._id);
+    }
+  }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
       try {
-        setIsLoading(true);
-        const res = await axios.get("http://localhost:5000/api/pembimbing");
-        setPembimbing(res.data);
+        const token = localStorage.getItem("token");
+        if (!token) {
+          toast.error("Token tidak ditemukan. Silakan login kembali.");
+          setLoading(false);
+          return;
+        }
+
+        let apiUrl = "http://localhost:5000/api/pendaftaran";
+
+        // Jika user adalah pembimbing, ambil hanya mahasiswa bimbingannya
+        if (userRole === "pembimbing" && userId) {
+          apiUrl = `http://localhost:5000/api/pembimbing/${userId}/mahasiswa`;
+        }
+
+        const response = await axios.get(apiUrl, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        // Format data sesuai response
+        const dataToFormat = response.data;
+        const formattedData = dataToFormat.map((item) => ({
+          id: item._id,
+          nama: item.nama,
+          email: item.email,
+          institusi: item.institusi,
+          mulai: item.mulai,
+          selesai: item.selesai,
+          periode:
+            item.mulai && item.selesai
+              ? `${new Date(item.mulai).toLocaleDateString(
+                  "id-ID"
+                )} - ${new Date(item.selesai).toLocaleDateString("id-ID")}`
+              : "-",
+          laporan: item.laporanAkhir || null,
+          tanggalUpload: item.laporanUploadDate || item.updatedAt,
+          status: item.laporanVerified
+            ? "verified"
+            : item.laporanAkhir
+            ? "pending"
+            : "none",
+          hasReport: !!item.laporanAkhir,
+          pembimbing: item.pembimbing || null,
+          admin: item.admin || null,
+          laporanVerified: item.laporanVerified || false,
+          laporanVerificationDate: item.laporanVerificationDate || null,
+        }));
+
+        setLaporan(formattedData);
       } catch (error) {
-        toast.error("Gagal memuat data pembimbing");
-        console.error("Error fetching pembimbing:", error);
+        console.error("Error fetching laporan:", error);
+        if (error.response?.status === 401) {
+          toast.error("Sesi telah berakhir. Silakan login kembali.");
+          router.push("/login");
+        } else if (error.response?.status === 403) {
+          toast.error("Anda tidak memiliki akses ke data ini.");
+        } else {
+          toast.error("Gagal memuat data laporan. Silakan coba lagi.");
+        }
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
 
-    fetchPembimbing();
-  }, []);
+    if (userRole) {
+      fetchData();
+    }
+  }, [router, userRole, userId]);
 
-  // Fetch data mahasiswa bimbingan
-  const fetchMahasiswa = async (pembimbingId) => {
+  const filteredLaporan = laporan.filter(
+    (l) =>
+      l.nama?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      l.institusi?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const handleViewReport = (filename) => {
+    if (!filename) {
+      toast.error("File laporan tidak tersedia");
+      return;
+    }
+
+    const decodedFilename = decodeURIComponent(filename);
+    window.open(
+      `http://localhost:5000/api/download-laporan/${decodedFilename}`,
+      "_blank"
+    );
+  };
+
+  const handleViewDetail = (laporan) => {
+    setSelectedLaporan(laporan);
+  };
+
+  const handleVerification = async (verifier) => {
     try {
-      setIsLoading(true);
-      const res = await axios.get(
-        `http://localhost:5000/api/pembimbing/${pembimbingId}/mahasiswa`
-      );
-      setMahasiswaBimbingan(res.data);
+      setIsUpdating(true);
+      const token = localStorage.getItem("token");
+
+      // Data yang sangat sederhana untuk menghindari error 500
+      const requestData = {
+        verifier: verifier,
+      };
+
+      // Endpoint untuk verifikasi laporan
+      const endpoint = `http://localhost:5000/api/pendaftaran/${selectedLaporan.id}/verify-laporan`;
+
+      const response = await axios.patch(endpoint, requestData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      // Jika verifikasi berhasil, update state
+      if (response.status === 200) {
+        // Update local state berdasarkan verifier
+        const updatedLaporan = laporan.map((item) =>
+          item.id === selectedLaporan.id
+            ? {
+                ...item,
+                status: verifier === "admin" ? "verified" : item.status,
+                pembimbing:
+                  verifier === "pembimbing"
+                    ? {
+                        ...item.pembimbing,
+                        status: "verified",
+                      }
+                    : item.pembimbing,
+                admin:
+                  verifier === "admin"
+                    ? {
+                        ...item.admin,
+                        status: "verified",
+                      }
+                    : item.admin,
+                laporanVerified:
+                  verifier === "admin" ? true : item.laporanVerified,
+                laporanVerificationDate: new Date().toISOString(),
+              }
+            : item
+        );
+
+        setLaporan(updatedLaporan);
+
+        // Update selectedLaporan untuk modal
+        setSelectedLaporan((prev) => ({
+          ...prev,
+          status: verifier === "admin" ? "verified" : prev.status,
+          pembimbing:
+            verifier === "pembimbing"
+              ? {
+                  ...prev.pembimbing,
+                  status: "verified",
+                }
+              : prev.pembimbing,
+          admin:
+            verifier === "admin"
+              ? {
+                  ...prev.admin,
+                  status: "verified",
+                }
+              : prev.admin,
+          laporanVerified: verifier === "admin" ? true : prev.laporanVerified,
+          laporanVerificationDate: new Date().toISOString(),
+        }));
+
+        toast.success(`Laporan berhasil diverifikasi oleh ${verifier}`);
+      }
     } catch (error) {
-      toast.error("Gagal memuat data mahasiswa");
-      console.error("Error fetching mahasiswa:", error);
-      setMahasiswaBimbingan([]);
+      console.error("Error verifying report:", error);
+
+      if (error.response) {
+        if (error.response.status === 401) {
+          toast.error("Sesi telah berakhir. Silakan login kembali.");
+          router.push("/login");
+        } else if (error.response.status === 403) {
+          toast.error("Anda tidak memiliki izin untuk melakukan verifikasi.");
+        } else if (error.response.status === 404) {
+          toast.error("Endpoint verifikasi tidak ditemukan.");
+        } else if (error.response.status === 500) {
+          toast.error("Terjadi kesalahan server. Silakan coba lagi nanti.");
+        } else {
+          toast.error("Gagal memverifikasi laporan.");
+        }
+      } else {
+        toast.error("Terjadi kesalahan jaringan. Silakan coba lagi.");
+      }
     } finally {
-      setIsLoading(false);
+      setIsUpdating(false);
     }
   };
 
-  // Toggle expand row
-  const toggleRowExpand = (pembimbingId) => {
-    setExpandedRows((prev) => ({
-      ...prev,
-      [pembimbingId]: !prev[pembimbingId],
-    }));
-
-    if (!expandedRows[pembimbingId]) {
-      fetchMahasiswa(pembimbingId);
-    }
-  };
+  if (loading) {
+    return (
+      <PembimbingLayout>
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+      </PembimbingLayout>
+    );
+  }
 
   return (
     <PembimbingLayout>
       <Head>
-        <title>Laporan Akhir| Kominfo Palembang</title>
-        <meta
-          name="description"
-          content="Kelola Laporan Akhir Kominfo Palembang"
-        />
+        <title>Data Laporan Akhir | Kominfo Palembang</title>
       </Head>
-
-      {/* Header Section */}
       <div className="mb-8">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-800 flex items-center gap-2">
-          <UserCircle2 className="text-blue-600" size={28} />
-          Laporan Akhir
-        </h1>
-        <p className="text-gray-500 text-sm mt-1">
-          Kelola Laporan Akhir di Kominfo Palembang
-        </p>
-      </div>
-
-      {/* Data Table */}
-      <div className="bg-white rounded-xl shadow overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Nama Pembimbing
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Email
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Divisi
-                </th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Mahasiswa
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Aksi
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {isLoading && pembimbing.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-6 py-4 text-center">
-                    <div className="flex justify-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-                    </div>
-                  </td>
-                </tr>
-              ) : pembimbing.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={6}
-                    className="px-6 py-4 text-center text-gray-500"
-                  >
-                    Tidak ada data pembimbing
-                  </td>
-                </tr>
-              ) : (
-                pembimbing.map((item) => (
-                  <React.Fragment key={item._id}>
-                    <tr
-                      className="hover:bg-gray-50 cursor-pointer"
-                      onClick={() => toggleRowExpand(item._id)}
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                            <UserCircle2 className="text-blue-600" size={20} />
-                          </div>
-                          <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">
-                              {item.nama}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {item.email}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {item.divisi}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                          {item.jumlahMahasiswa || 0}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                            item.status === "aktif"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
-                          }`}
-                        >
-                          {item.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div className="flex justify-end items-center gap-2">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleRowExpand(item._id);
-                            }}
-                            className="text-gray-500 hover:text-gray-700"
-                            aria-label={
-                              expandedRows[item._id] ? "Tutup" : "Buka"
-                            }
-                          >
-                            {expandedRows[item._id] ? (
-                              <ChevronUp size={18} />
-                            ) : (
-                              <ChevronDown size={18} />
-                            )}
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-
-                    {expandedRows[item._id] && (
-                      <tr>
-                        <td colSpan={6} className="px-6 py-4 bg-gray-50">
-                          <div className="pl-14">
-                            <h4 className="text-sm font-medium text-gray-700 mb-2">
-                              Mahasiswa Bimbingan ({mahasiswaBimbingan.length})
-                            </h4>
-                            {mahasiswaBimbingan.length > 0 ? (
-                              <div className="overflow-x-auto">
-                                <table className="min-w-full divide-y divide-gray-200">
-                                  <thead className="bg-gray-100">
-                                    <tr>
-                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Nama
-                                      </th>
-                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Email
-                                      </th>
-                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Institusi
-                                      </th>
-                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Periode
-                                      </th>
-                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Status
-                                      </th>
-                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Aksi
-                                      </th>
-                                    </tr>
-                                  </thead>
-                                  <tbody className="bg-white divide-y divide-gray-200">
-                                    {mahasiswaBimbingan.map((mhs) => (
-                                      <tr key={mhs._id}>
-                                        <td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
-                                          <button
-                                            className="text-blue-600 hover:underline"
-                                            onClick={() =>
-                                              handleViewMahasiswaDetail(mhs)
-                                            }
-                                          >
-                                            {mhs.nama}
-                                          </button>
-                                        </td>
-                                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
-                                          {mhs.email || "-"}
-                                        </td>
-                                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
-                                          {mhs.institusi}
-                                        </td>
-                                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
-                                          {mhs.mulai && mhs.selesai
-                                            ? `${formatDate(
-                                                mhs.mulai
-                                              )} - ${formatDate(mhs.selesai)}`
-                                            : "Belum ditentukan"}
-                                        </td>
-                                        <td className="px-4 py-2 whitespace-nowrap">
-                                          <span
-                                            className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                                              mhs.status === "disetujui"
-                                                ? "bg-green-100 text-green-800"
-                                                : "bg-yellow-100 text-yellow-800"
-                                            }`}
-                                          >
-                                            {mhs.status || "pending"}
-                                          </span>
-                                        </td>
-                                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500 flex gap-2">
-                                          <button
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              // Ganti dengan link atau logic yang sesuai untuk Laporan
-                                              router.push(
-                                                `/pembimbing/LaporanAkhir?id=${mhs._id}`
-                                              );
-                                            }}
-                                            className="flex items-center gap-1 px-3 py-1.5 bg-green-100 text-green-800 rounded-lg hover:bg-green-200 transition-all shadow-sm border border-green-200 text-sm font-medium"
-                                          >
-                                            <svg
-                                              xmlns="http://www.w3.org/2000/svg"
-                                              className="h-4 w-4"
-                                              fill="none"
-                                              viewBox="0 0 24 24"
-                                              stroke="currentColor"
-                                            >
-                                              <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                                              />
-                                            </svg>
-                                            <span>Laporan</span>
-                                          </button>
-
-                                          <button
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              handleViewMahasiswaDetail(mhs);
-                                            }}
-                                            className="flex items-center gap-1 px-3 py-1.5 bg-yellow-100 text-yellow-800 rounded-lg hover:bg-yellow-200 transition-all shadow-sm border border-yellow-200 text-sm font-medium"
-                                          >
-                                            <svg
-                                              xmlns="http://www.w3.org/2000/svg"
-                                              className="h-4 w-4"
-                                              fill="none"
-                                              viewBox="0 0 24 24"
-                                              stroke="currentColor"
-                                            >
-                                              <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                                              />
-                                            </svg>
-                                            <span>Detail</span>
-                                          </button>
-                                        </td>
-                                      </tr>
-                                    ))}
-                                  </tbody>
-                                </table>
-                              </div>
-                            ) : (
-                              <p className="text-sm text-gray-500">
-                                {isLoading
-                                  ? "Memuat data..."
-                                  : "Tidak ada mahasiswa bimbingan"}
-                              </p>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </React.Fragment>
-                ))
-              )}
-            </tbody>
-          </table>
+        <div className="flex items-center gap-3 mb-2">
+          <div className="p-3 rounded-lg bg-blue-50 text-blue-600">
+            <FileText size={24} />
+          </div>
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
+              Data Laporan Akhir
+            </h1>
+            <p className="text-gray-500 text-sm">
+              {userRole === "pembimbing"
+                ? "Kelola laporan akhir mahasiswa bimbingan Anda"
+                : "Kelola laporan akhir peserta magang"}
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* Modal Detail Mahasiswa */}
-      {selectedMahasiswa && (
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="p-6 border-b border-gray-100">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div className="relative w-full md:w-96">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="text-gray-400" size={18} />
+              </div>
+              <input
+                type="text"
+                placeholder="Cari peserta atau institusi..."
+                className="block w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <span className="hidden md:inline">Total:</span>
+              <span className="font-medium text-gray-700">
+                {filteredLaporan.length}{" "}
+                {userRole === "pembimbing" ? "Mahasiswa" : "Peserta"}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {filteredLaporan.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {userRole === "pembimbing" ? "Mahasiswa" : "Peserta"}
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Institusi
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Periode
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Aksi
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-100">
+                {filteredLaporan.map((l) => (
+                  <tr key={l.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+                          <User size={18} />
+                        </div>
+                        <div className="ml-4">
+                          <div className="text-sm font-medium text-gray-900">
+                            {l.nama || "-"}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {l.email || "-"}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700">
+                      {l.institusi || "-"}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2 text-sm text-gray-700">
+                        <Calendar size={14} className="text-gray-400" />
+                        {l.periode || "-"}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      {l.status === "verified" ? (
+                        <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          <FileCheck size={14} className="mr-1" />
+                          Terverifikasi
+                        </div>
+                      ) : l.status === "pending" ? (
+                        <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                          <Clock size={14} className="mr-1" />
+                          Menunggu
+                        </div>
+                      ) : (
+                        <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                          <FileX size={14} className="mr-1" />
+                          Belum Upload
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex justify-end space-x-2">
+                        {l.hasReport ? (
+                          <>
+                            <button
+                              onClick={() => handleViewDetail(l)}
+                              className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
+                              title="Lihat Detail"
+                            >
+                              Detail
+                            </button>
+                            <button
+                              onClick={() => handleViewReport(l.laporan)}
+                              className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
+                              title="Lihat Laporan"
+                            >
+                              <Eye size={18} />
+                            </button>
+                          </>
+                        ) : (
+                          <span className="text-sm text-gray-400 px-3 py-2">
+                            -
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <div className="mx-auto h-24 w-24 text-gray-400 mb-4">
+              <Frown size={48} className="mx-auto" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-1">
+              Tidak ada data ditemukan
+            </h3>
+            <p className="text-sm text-gray-500 max-w-md mx-auto">
+              {searchTerm
+                ? `Tidak ada ${
+                    userRole === "pembimbing" ? "mahasiswa" : "peserta"
+                  } yang cocok dengan pencarian Anda`
+                : "Belum ada laporan yang tersedia"}
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Modal Detail Laporan */}
+      {selectedLaporan && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-auto">
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-xl font-bold text-gray-800">
-                  Detail Mahasiswa Bimbingan
+                  Detail Laporan Akhir
                 </h3>
                 <button
-                  onClick={() => setSelectedMahasiswa(null)}
-                  className="text-gray-500 hover:text-gray-700"
-                  aria-label="Tutup modal"
+                  onClick={() => setSelectedLaporan(null)}
+                  className="text-gray-500 hover:text-gray-700 text-2xl"
                 >
                   &times;
                 </button>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Data Pribadi */}
+                {/* Data Peserta */}
                 <div className="space-y-4">
                   <div>
                     <h4 className="text-sm font-medium text-gray-500">
                       Nama Lengkap
                     </h4>
                     <p className="text-gray-800 font-medium">
-                      {selectedMahasiswa.nama}
+                      {selectedLaporan.nama}
                     </p>
                   </div>
                   <div>
                     <h4 className="text-sm font-medium text-gray-500">Email</h4>
-                    <p className="text-gray-800">
-                      {selectedMahasiswa.email || "-"}
-                    </p>
+                    <p className="text-gray-800">{selectedLaporan.email}</p>
                   </div>
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-500">
-                      Nomor Telepon
-                    </h4>
-                    <p className="text-gray-800">
-                      {selectedMahasiswa.telepon || "-"}
-                    </p>
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-500">
-                      Alamat
-                    </h4>
-                    <p className="text-gray-800 whitespace-pre-line">
-                      {selectedMahasiswa.alamat || "-"}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Data Akademik */}
-                <div className="space-y-4">
                   <div>
                     <h4 className="text-sm font-medium text-gray-500">
                       Institusi
                     </h4>
-                    <p className="text-gray-800">
-                      {selectedMahasiswa.institusi}
-                    </p>
+                    <p className="text-gray-800">{selectedLaporan.institusi}</p>
                   </div>
                   <div>
                     <h4 className="text-sm font-medium text-gray-500">
-                      Program Studi
-                    </h4>
-                    <p className="text-gray-800">{selectedMahasiswa.prodi}</p>
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-500">
-                      Semester
-                    </h4>
-                    <p className="text-gray-800">
-                      {selectedMahasiswa.semester}
-                    </p>
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-500">
-                      Status
+                      Status Laporan
                     </h4>
                     <span
                       className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                        selectedMahasiswa.status === "disetujui"
+                        selectedLaporan.status === "verified"
                           ? "bg-green-100 text-green-800"
                           : "bg-yellow-100 text-yellow-800"
                       }`}
                     >
-                      {selectedMahasiswa.status || "pending"}
+                      {selectedLaporan.status === "verified"
+                        ? "Terverifikasi"
+                        : "Menunggu Verifikasi"}
                     </span>
                   </div>
                 </div>
 
-                {/* Data Magang */}
-                <div className="md:col-span-2 space-y-4">
+                {/* Data Periode dan Upload */}
+                <div className="space-y-4">
                   <div>
                     <h4 className="text-sm font-medium text-gray-500">
                       Periode Magang
                     </h4>
+                    <p className="text-gray-800">{selectedLaporan.periode}</p>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-500">
+                      Tanggal Upload Laporan
+                    </h4>
                     <p className="text-gray-800">
-                      {selectedMahasiswa.mulai && selectedMahasiswa.selesai
-                        ? `${formatDate(
-                            selectedMahasiswa.mulai
-                          )} - ${formatDate(selectedMahasiswa.selesai)}`
-                        : "Belum ditentukan"}
+                      {new Date(
+                        selectedLaporan.tanggalUpload
+                      ).toLocaleDateString("id-ID")}
                     </p>
                   </div>
-                  {selectedMahasiswa.pembimbing && (
+                  {selectedLaporan.laporanVerificationDate && (
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">
-                        Pembimbing
+                        Tanggal Verifikasi
                       </h4>
-                      <div className="mt-1 p-3 bg-gray-50 rounded">
-                        <p className="font-medium">
-                          {selectedMahasiswa.pembimbing.nama}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          {selectedMahasiswa.pembimbing.divisi}
-                        </p>
-                      </div>
+                      <p className="text-gray-800">
+                        {new Date(
+                          selectedLaporan.laporanVerificationDate
+                        ).toLocaleDateString("id-ID")}
+                      </p>
                     </div>
                   )}
                 </div>
               </div>
 
-              <div className="mt-6 flex justify-end gap-3">
-                <Link
-                  href={`/pembimbing/LogbookMagang?id=${selectedMahasiswa._id}`}
-                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-2"
-                >
-                  <BookOpen size={16} />
-                  Lihat Logbook
-                </Link>
-                <Link
-                  href={`/pembimbing/LaporanAkhir?id=${selectedMahasiswa._id}`}
-                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center gap-2"
-                >
-                  <FileText size={16} />
-                  Lihat Laporan
-                </Link>
+              {/* Status Verifikasi Pembimbing */}
+              {selectedLaporan.pembimbing && (
+                <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                  <h4 className="text-sm font-medium text-gray-500 mb-2">
+                    Status Pembimbing
+                  </h4>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">
+                        {selectedLaporan.pembimbing.nama}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {selectedLaporan.pembimbing.divisi}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                          selectedLaporan.pembimbing.status === "verified"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-yellow-100 text-yellow-800"
+                        }`}
+                      >
+                        {selectedLaporan.pembimbing.status === "verified"
+                          ? "Terverifikasi"
+                          : "Belum Diverifikasi"}
+                      </span>
+                      {selectedLaporan.pembimbing.status !== "verified" &&
+                        userRole === "pembimbing" && (
+                          <button
+                            onClick={() => handleVerification("pembimbing")}
+                            disabled={isUpdating}
+                            className="px-3 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600 disabled:opacity-50"
+                          >
+                            {isUpdating ? "Memproses..." : "Verifikasi"}
+                          </button>
+                        )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Tombol Preview Laporan */}
+              {selectedLaporan.hasReport && (
+                <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                  <h4 className="text-sm font-medium text-gray-500 mb-2">
+                    Preview Laporan
+                  </h4>
+                  <button
+                    onClick={() => handleViewReport(selectedLaporan.laporan)}
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-2"
+                  >
+                    <Eye size={16} />
+                    Preview Laporan
+                  </button>
+                </div>
+              )}
+
+              <div className="mt-6 flex justify-end">
                 <button
-                  onClick={() => setSelectedMahasiswa(null)}
+                  onClick={() => setSelectedLaporan(null)}
                   className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
                 >
                   Tutup
