@@ -21,7 +21,7 @@ export default function Register() {
     setIsLoading(true);
 
     if (form.password.length < 8) {
-      toast.error("Password minimal 8 karakter.", {
+      toast.error("Password minimal 8 karakter dan angka.", {
         position: "bottom-right",
         autoClose: 3000,
         hideProgressBar: false,
@@ -294,7 +294,7 @@ export default function Register() {
                   </button>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
-                  Minimal 8 karakter dengan kombinasi huruf, angka, dan simbol
+                  Minimal 8 karakter dengan kombinasi huruf, angka
                 </p>
               </div>
 

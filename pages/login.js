@@ -283,7 +283,7 @@ export default function Login() {
                   </button>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
-                  Minimal 8 karakter dengan kombinasi huruf, angka, dan simbol
+                  Minimal 8 karakter dan angka
                 </p>
               </div>
 
